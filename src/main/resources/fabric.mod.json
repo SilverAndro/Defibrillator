@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "defibrillator",
+  "version": "${version}",
+  "name": "Defibrillator",
+  "description": "A server utility focused mod for messing with NBT data from in-game",
+  "authors": [
+    "TheoreticallyUseful / P03W"
+  ],
+  "contact": {},
+  "license": "MPL-2.0",
+  "icon": "assets/defibrillator/icon.png",
+  "environment": "*",
+  "accessWidener" : "defib.aw",
+  "entrypoints": {
+    "main": [
+      "mc.defibrillator.Defibrillator"
+    ]
+  },
+  "mixins": [
+    "defibrillator.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "*",
+    "fabric-language-kotlin": ">=1.5.0+kotlin.1.4.31"
+  }
+}
