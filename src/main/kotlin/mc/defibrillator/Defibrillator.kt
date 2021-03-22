@@ -82,8 +82,8 @@ class Defibrillator : ModInitializer {
                                             dir
                                         )
                                         NbtIo.writeCompressed(compoundTag, file)
-                                        val file2 = File(dir, uuid.toString() + ".dat")
-                                        val file3 = File(dir, uuid.toString() + ".dat_old")
+                                        val file2 = File(dir, "$uuid.dat")
+                                        val file3 = File(dir, "$uuid.dat_old")
                                         Util.backupAndReplace(file2, file, file3)
                                         it.source.sendFeedback(LiteralText("Saved user data"), true)
                                     } catch (ex: Exception) {
