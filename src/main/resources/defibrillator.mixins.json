@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "mc.defibrillator.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ChatEntryGrabber",
+    "PlayerJoinDataGrabber",
+    "ServerInstanceGrabber"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

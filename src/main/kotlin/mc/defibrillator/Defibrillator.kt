@@ -1,0 +1,252 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+package mc.defibrillator
+
+import com.github.kittinunf.fuel.httpGet
+import com.github.kittinunf.result.Result
+import com.github.p03w.aegis.aegisCommand
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.context.CommandContext
+import kotlinx.coroutines.*
+import mc.defibrillator.command.OfflinePlayerSuggester
+import mc.defibrillator.gui.data.MenuState
+import mc.defibrillator.gui.util.openNBTGui
+import mc.defibrillator.util.copyableText
+import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtIo
+import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.sound.SoundCategory
+import net.minecraft.sound.SoundEvents
+import net.minecraft.text.LiteralText
+import net.minecraft.util.Hand
+import net.minecraft.util.Util
+import net.minecraft.util.WorldSavePath
+import java.io.File
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
+
+class Defibrillator : ModInitializer {
+    @ExperimentalTime
+    @ExperimentalStdlibApi
+    override fun onInitialize() {
+        // Remove GUI items from players
+        ServerTickEvents.END_WORLD_TICK.register { world ->
+            world.players.forEach {
+                it.inventory.remove(
+                    { stack -> stack.orCreateTag.contains("defib-DELETE") },
+                    Int.MAX_VALUE,
+                    it.playerScreenHandler.method_29281()
+                )
+            }
+        }
+
+        CommandRegistrationCallback.EVENT.register { dispatcher: CommandDispatcher<ServerCommandSource>, _: Boolean ->
+            dispatcher.register(aegisCommand("defib") {
+                requires {
+                    it.hasPermissionLevel(2)
+                }
+                literal("modify") {
+                    literal("playerdata") {
+                        string("playerData") {
+                            suggests(OfflinePlayerSuggester()::getSuggestions)
+                            executes(debug = true) {
+                                openNBTGui(
+                                    it.source.player,
+                                    it.getArgument("playerData", String::class.java),
+                                    MenuState(
+                                        OfflinePlayerSuggester.getPlayerData(it, "playerData")
+                                    )
+                                ) { state ->
+                                    try {
+                                        val name = it.getArgument("playerData", String::class.java)
+                                        val uuid = OfflinePlayerCache.getByName(name)
+                                        val dir = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile()
+
+                                        val compoundTag = state.rootTag
+                                        val file = File.createTempFile(
+                                            "$uuid-",
+                                            ".dat",
+                                            dir
+                                        )
+                                        NbtIo.writeCompressed(compoundTag, file)
+                                        val file2 = File(dir, uuid.toString() + ".dat")
+                                        val file3 = File(dir, uuid.toString() + ".dat_old")
+                                        Util.backupAndReplace(file2, file, file3)
+                                        it.source.sendFeedback(LiteralText("Saved user data"), true)
+                                    } catch (ex: Exception) {
+                                        it.source.sendError(LiteralText("Failed to save user data"))
+                                        ex.printStackTrace()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    literal("item") {
+                        executes {
+                            openNBTGui(
+                                it.source.player,
+                                "Held Item",
+                                MenuState(
+                                    it.source.player.mainHandStack.toTag(CompoundTag())
+                                )
+                            ) { state ->
+                                it.source.player.setStackInHand(
+                                    Hand.MAIN_HAND,
+                                    ItemStack.fromTag(state.rootTag)
+                                )
+                            }
+                        }
+                    }
+                }
+                literal("recache") {
+                    executes(debug = true) {
+                        OfflinePlayerCache.findNotInCache()
+                        it.source.sendFeedback(
+                            LiteralText("Defibrillator offline player cache successfully re-cached"),
+                            true
+                        )
+                    }
+                    literal("import") {
+                        executes(debug = true) {
+                            it.source.sendFeedback(
+                                LiteralText("Beginning import of players from .dat files"),
+                                true
+                            )
+
+                            GlobalScope.launch {
+                                val possible = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile().list()
+                                val uuids = OfflinePlayerCache.all.keys.map { uuid -> uuid.toString() }
+
+                                if (possible != null) {
+                                    val needed = possible
+                                        .map { filename -> filename.replace(".dat_old", "").replace(".dat", "") }
+                                        .distinct()
+                                        .filter { cleaned -> !uuids.contains(cleaned) }
+
+                                    if (needed.isEmpty()) {
+                                        it.source.sendFeedback(
+                                            LiteralText("No unknown users, canceling"),
+                                            true
+                                        )
+                                        cancel()
+                                        return@launch
+                                    }
+
+
+                                    it.source.sendFeedback(
+                                        LiteralText(
+                                            "Found ${needed.size} unknown users, beginning import " +
+                                                    "(Estimated time until completion: ${
+                                                        (2.1).toDuration(DurationUnit.SECONDS).times(needed.size)
+                                                    })"
+                                        ),
+                                        true
+                                    )
+
+                                    val startTime = Date().time
+                                    for (uuid in needed) {
+                                        getAndSave(uuid, it)
+                                        // Delay 2 seconds
+                                        // Technically the limit is 600 per 10min (1 per sec) but we don't
+                                        //     want to risk getting rate limited
+                                        delay(2.toDuration(DurationUnit.SECONDS))
+                                    }
+
+                                    OfflinePlayerCache.filterByOnline(it.source.playerNames)
+                                    it.source.sendFeedback(
+                                        LiteralText(
+                                            "Done importing (took ${
+                                                (Date().time - startTime).toDuration(
+                                                    DurationUnit.MILLISECONDS
+                                                )
+                                            })"
+                                        ),
+                                        true
+                                    )
+
+                                    try {
+                                        it.source.player.playSound(
+                                            SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
+                                            SoundCategory.MASTER,
+                                            5.0f,
+                                            0.7f
+                                        )
+                                    } catch (ignored: Throwable) {
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        }
+
+        GlobalScope.launch {
+            while (isActive) {
+                // Re-cache every 3 minutes
+                delay(3.toDuration(DurationUnit.MINUTES))
+                OfflinePlayerCache.findNotInCache()
+            }
+        }
+    }
+
+    private fun getAndSave(uuid: String, context: CommandContext<ServerCommandSource>) {
+        val (_, _, result) = "https://api.mojang.com/user/profiles/${uuid.replace("-", "")}/names"
+            .httpGet()
+            .responseString()
+
+        when (result) {
+            is Result.Failure -> {
+                val ex = result.getException()
+                context.source.sendError(
+                    LiteralText("Failed to get username for ")
+                        .append(copyableText(uuid))
+                        .append(LiteralText("API status code: ${ex.response.statusCode})"))
+                )
+                println(ex)
+            }
+            is Result.Success -> {
+                val data = result.get()
+
+                // Quit early with error
+                if (data.isEmpty()) {
+                    context.source.sendError(
+                        LiteralText("Failed to get username for ")
+                            .append(copyableText(uuid))
+                    )
+                    return
+                }
+
+                val gson = Gson().fromJson(data, ArrayList::class.java)
+
+                var currentName = ""
+                var greatestChangedAt = -1.0
+                for (entry in gson) {
+                    val casted = entry as LinkedTreeMap<*, *>
+                    val changedTime = (casted["changedToAt"] as? Double) ?: 0.0
+                    if (changedTime > greatestChangedAt) {
+                        greatestChangedAt = changedTime
+                        currentName = casted["name"] as String
+                    }
+                }
+
+                val uuidFromString = UUID.fromString(uuid)
+                OfflinePlayerCache.all[uuidFromString] = currentName
+                OfflinePlayerCache.currentlyOffline[uuidFromString] = currentName
+            }
+        }
+    }
+}
