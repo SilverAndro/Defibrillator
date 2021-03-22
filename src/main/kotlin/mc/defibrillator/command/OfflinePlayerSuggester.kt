@@ -41,18 +41,10 @@ class OfflinePlayerSuggester : SuggestionProvider<ServerCommandSource> {
     companion object {
         fun getPlayerData(context: CommandContext<ServerCommandSource>, name: String): CompoundTag {
             val providedName = context.getArgument(name, String::class.java)
-            val uuid = OfflinePlayerCache.currentlyOffline[providedName]
-
-            if (uuid == null) {
-                if (!OfflinePlayerCache.all.containsKey(providedName)) {
-                    generateError(context, "User is not in cache!")
-                } else {
-                    generateError(context, "User is not offline!")
-                }
-            }
+            val uuid = OfflinePlayerCache.getByName(providedName)
 
             val file = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile()
-                .resolve(OfflinePlayerCache.currentlyOffline[providedName]!!.toString() + ".dat")
+                .resolve(OfflinePlayerCache.getByName(providedName).toString() + ".dat")
 
             if (!file.exists()) {
                 generateError(context, "No .dat file associated with that uuid! ($uuid)")
