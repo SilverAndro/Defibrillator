@@ -18,6 +18,7 @@ import mc.defibrillator.command.OfflinePlayerSuggester
 import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.util.openNBTGui
 import mc.defibrillator.util.copyableText
+import mc.microconfig.MicroConfig
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
@@ -198,7 +199,7 @@ class Defibrillator : ModInitializer {
         GlobalScope.launch {
             while (isActive) {
                 // Re-cache every 3 minutes
-                delay(3.toDuration(DurationUnit.MINUTES))
+                delay(config.recacheDelay.toDuration(DurationUnit.MINUTES))
                 OfflinePlayerCache.recache()
             }
         }
@@ -249,5 +250,9 @@ class Defibrillator : ModInitializer {
                 OfflinePlayerCache.currentlyOffline[uuidFromString] = currentName
             }
         }
+    }
+
+    companion object {
+        val config: DefibrillatorConfig = MicroConfig.getOrCreate("defibrillator", DefibrillatorConfig())
     }
 }

@@ -61,7 +61,7 @@ fun getTextEntry(composite: GuiStateComposite, forMessage: String, onComplete: (
                 DefibState.readInput.computeIfAbsent(player) { mutableListOf() }
                 DefibState.readInput[player]!!.add(it)
                 player.sendMessage(LiteralText("${forMessage.capitalize()} set"), false)
-                this.cancel(SafeCoroutineExit())
+                topRoutine.cancel(SafeCoroutineExit())
             }
 
             while (isActive) {
