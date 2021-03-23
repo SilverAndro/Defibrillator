@@ -13,7 +13,7 @@ object OfflinePlayerCache {
     var all: HashMap<UUID, String> = hashMapOf()
 
     init {
-        findNotInCache()
+        recache()
     }
 
     fun getByName(name: String): UUID {
@@ -31,7 +31,7 @@ object OfflinePlayerCache {
         }
     }
 
-    fun findNotInCache() {
+    fun recache() {
         val lines = DefibState.cache.readLines()
         lines.forEach {
             if (it.isNotEmpty()) {
