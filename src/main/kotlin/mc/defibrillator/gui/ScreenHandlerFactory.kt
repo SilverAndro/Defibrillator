@@ -30,7 +30,6 @@ class ScreenHandlerFactory(
     private val state: MenuState,
     private val onClose: (MenuState) -> Unit
 ) : NamedScreenHandlerFactory {
-
     init {
         state.factory = this
     }

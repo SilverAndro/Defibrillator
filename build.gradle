@@ -39,6 +39,10 @@ dependencies {
     modImplementation 'com.github.P03W:Aegis:2.0.3'
     include 'com.github.P03W:Aegis:2.0.3'
 
+    // Microconfig
+    modImplementation 'com.github.P03W:Microconfig:2.0.0'
+    include 'com.github.P03W:Microconfig:2.0.0'
+
     // Fuel
     implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
     implementation 'com.github.kittinunf.fuel:fuel-json:2.3.1'
