@@ -7,7 +7,7 @@
 package mc.defibrillator.gui.data
 
 import mc.defibrillator.gui.MainScreenHandler
-import mc.defibrillator.gui.ScreenHandlerFactory
+import mc.defibrillator.gui.NBTScreenHandlerFactory
 import mc.defibrillator.util.DynamicLimitedIntProp
 import net.minecraft.nbt.AbstractListTag
 import net.minecraft.nbt.CompoundTag
@@ -20,7 +20,7 @@ class MenuState(val rootTag: CompoundTag) {
     var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })
 
     var handler: MainScreenHandler? = null
-    var factory: ScreenHandlerFactory? = null
+    var factory: NBTScreenHandlerFactory? = null
     var suppressOnClose: AtomicBoolean = AtomicBoolean(false)
 
     fun getActiveTag(): Tag {

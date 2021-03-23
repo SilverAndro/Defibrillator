@@ -108,6 +108,7 @@ class Defibrillator : ModInitializer {
                                     Hand.MAIN_HAND,
                                     ItemStack.fromTag(state.rootTag)
                                 )
+                                it.source.sendFeedback(LiteralText("Saved item data"), false)
                             }
                         }
                     }

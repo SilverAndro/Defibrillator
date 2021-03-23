@@ -9,7 +9,7 @@ package mc.defibrillator.gui.util
 import kotlinx.coroutines.*
 import mc.defibrillator.DefibState
 import mc.defibrillator.exception.SafeCoroutineExit
-import mc.defibrillator.gui.ScreenHandlerFactory
+import mc.defibrillator.gui.NBTScreenHandlerFactory
 import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.data.RightClickMode
@@ -33,7 +33,7 @@ typealias GuiAction = (Int, GuiStateComposite) -> Unit
 
 fun openNBTGui(player: ServerPlayerEntity, title: String, state: MenuState, onClose: (MenuState) -> Unit) {
     player.openHandledScreen(
-        ScreenHandlerFactory(title, state, onClose)
+        NBTScreenHandlerFactory(title, state, onClose)
     )
 }
 
