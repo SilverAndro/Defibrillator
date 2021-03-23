@@ -25,11 +25,6 @@ object OfflinePlayerCache {
         return currentlyOffline.values.toList()
     }
 
-    fun getOfflinePlayerUUIDS(playerNames: MutableCollection<String>): List<UUID> {
-        filterByOnline(playerNames)
-        return currentlyOffline.keys.toList()
-    }
-
     fun filterByOnline(playerNames: MutableCollection<String>) {
         playerNames.forEach { name ->
             currentlyOffline.filterNot { it.value.equals(name, true) }

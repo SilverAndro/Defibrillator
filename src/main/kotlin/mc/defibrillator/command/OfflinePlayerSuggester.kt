@@ -11,8 +11,8 @@ import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import mc.defibrillator.DefibState
-import mc.defibrillator.exception.InvalidArgument
 import mc.defibrillator.OfflinePlayerCache
+import mc.defibrillator.exception.InvalidArgument
 import net.minecraft.command.CommandSource
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
@@ -20,7 +20,6 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Formatting
 import net.minecraft.util.WorldSavePath
-import java.io.File
 import java.util.concurrent.CompletableFuture
 
 class OfflinePlayerSuggester : SuggestionProvider<ServerCommandSource> {
