@@ -6,6 +6,7 @@
 
 package mc.defibrillator.gui
 
+import mc.defibrillator.exception.InvalidArgument
 import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.data.RightClickMode
@@ -25,7 +26,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import kotlin.time.ExperimentalTime
 
-class ScreenHandlerFactory(
+class NBTScreenHandlerFactory(
     private val title: String,
     private val state: MenuState,
     private val onClose: (MenuState) -> Unit
@@ -132,6 +133,7 @@ class ScreenHandlerFactory(
                 }
             }
 
+            // Add all the tags
             var index = 9
             try {
                 for (entry in (state.page * MenuState.PER_PAGE) until ((state.page + 1) * MenuState.PER_PAGE)) {
@@ -174,20 +176,20 @@ class ScreenHandlerFactory(
             fun punchInAndExit(tag: Tag, name: String, composite: GuiStateComposite) {
                 when (val active = composite.state.getActiveTag()) {
                     is CompoundTag -> active.put(name, tag)
-                    is ListTag -> {
+                    is AbstractListTag<*> -> {
                         if (active.elementType == tag.type || active.elementType == 0.toByte()) {
                             try {
                                 val index = name.toInt()
-                                active[index] = tag
+                                active.setTag(index, tag)
                             } catch (ignored: Throwable) {
-                                active.add(tag)
+                                active.addTag(active.size, tag)
                             }
                         }
                     }
                 }
                 composite.state.page = 0
                 makeAndUpdateNBTViewer(defaultedInventory, composite.state)
-                composite.player.openHandledScreen(this@ScreenHandlerFactory)
+                composite.player.openHandledScreen(this@NBTScreenHandlerFactory)
             }
 
             var index = 9
@@ -237,54 +239,63 @@ class ScreenHandlerFactory(
                     }
                 }
 
-            if (canAdd(NbtType.BYTE))
-                addEntry(index++, Items.PLAYER_HEAD.guiStack("Byte").asHashtag()) { _, composite ->
-                    getDoubleTextEntry(composite, "byte value") { name, value ->
-                        punchInAndExit(ByteTag.of(value.toInt().toByte()), name, composite)
+            // Give a generic number option if multiple would be supported
+            if (canAdd(NbtType.END)) {
+                addEntry(index++, Items.PLAYER_HEAD.guiStack("Number").asHashtag()) { _, composite ->
+                    getDoubleTextEntry(composite, "number value") { name, value ->
+                        punchInAndExit(convertEntryToNumberTag(value), name, composite)
                     }
                 }
+            } else {
+                if (canAdd(NbtType.BYTE))
+                    addEntry(index++, Items.PLAYER_HEAD.guiStack("Byte").asHashtag()) { _, composite ->
+                        getDoubleTextEntry(composite, "byte value") { name, value ->
+                            punchInAndExit(ByteTag.of(value.toInt().toByte()), name, composite)
+                        }
+                    }
 
-            if (canAdd(NbtType.FLOAT))
-            addEntry(index++, Items.PLAYER_HEAD.guiStack("Float").asHashtag()) { _, composite ->
-                getDoubleTextEntry(composite, "float value") { name, value ->
-                    punchInAndExit(FloatTag.of(value.toFloat()), name, composite)
-                }
-            }
+                if (canAdd(NbtType.FLOAT))
+                    addEntry(index++, Items.PLAYER_HEAD.guiStack("Float").asHashtag()) { _, composite ->
+                        getDoubleTextEntry(composite, "float value") { name, value ->
+                            punchInAndExit(FloatTag.of(value.toFloat()), name, composite)
+                        }
+                    }
 
-            if (canAdd(NbtType.DOUBLE))
-            addEntry(index++, Items.PLAYER_HEAD.guiStack("Double").asHashtag()) { _, composite ->
-                getDoubleTextEntry(composite, "double value") { name, value ->
-                    punchInAndExit(DoubleTag.of(value.toDouble()), name, composite)
-                }
-            }
+                if (canAdd(NbtType.DOUBLE))
+                    addEntry(index++, Items.PLAYER_HEAD.guiStack("Double").asHashtag()) { _, composite ->
+                        getDoubleTextEntry(composite, "double value") { name, value ->
+                            punchInAndExit(DoubleTag.of(value.toDouble()), name, composite)
+                        }
+                    }
 
-            if (canAdd(NbtType.INT))
-            addEntry(index++, Items.PLAYER_HEAD.guiStack("Int").asHashtag()) { _, composite ->
-                getDoubleTextEntry(composite, "integer value") { name, value ->
-                    punchInAndExit(IntTag.of(value.toInt()), name, composite)
-                }
-            }
+                if (canAdd(NbtType.INT))
+                    addEntry(index++, Items.PLAYER_HEAD.guiStack("Int").asHashtag()) { _, composite ->
+                        getDoubleTextEntry(composite, "integer value") { name, value ->
+                            punchInAndExit(IntTag.of(value.toInt()), name, composite)
+                        }
+                    }
 
-            if (canAdd(NbtType.LONG))
-            addEntry(index++, Items.PLAYER_HEAD.guiStack("Long").asHashtag()) { _, composite ->
-                getDoubleTextEntry(composite, "long value") { name, value ->
-                    punchInAndExit(LongTag.of(value.toLong()), name, composite)
-                }
-            }
+                if (canAdd(NbtType.LONG))
+                    addEntry(index++, Items.PLAYER_HEAD.guiStack("Long").asHashtag()) { _, composite ->
+                        getDoubleTextEntry(composite, "long value") { name, value ->
+                            punchInAndExit(LongTag.of(value.toLong()), name, composite)
+                        }
+                    }
 
-            if (canAdd(NbtType.SHORT))
-            addEntry(index++, Items.PLAYER_HEAD.guiStack("Short").asHashtag()) { _, composite ->
-                getDoubleTextEntry(composite, "short value") { name, value ->
-                    punchInAndExit(ShortTag.of(value.toShort()), name, composite)
-                }
+                if (canAdd(NbtType.SHORT))
+                    addEntry(index++, Items.PLAYER_HEAD.guiStack("Short").asHashtag()) { _, composite ->
+                        getDoubleTextEntry(composite, "short value") { name, value ->
+                            punchInAndExit(ShortTag.of(value.toShort()), name, composite)
+                        }
+                    }
             }
 
             if (canAdd(NbtType.STRING))
-            addEntry(index, Items.PAPER.guiStack("String")) { _, composite ->
-                getDoubleTextEntry(composite, "string value") { name, value ->
-                    punchInAndExit(StringTag.of(value), name, composite)
+                addEntry(index, Items.PAPER.guiStack("String")) { _, composite ->
+                    getDoubleTextEntry(composite, "string value") { name, value ->
+                        punchInAndExit(StringTag.of(value), name, composite)
+                    }
                 }
-            }
         }
 
         val clean = newDefaulted()
@@ -322,6 +333,38 @@ class ScreenHandlerFactory(
                 9 * 6,
                 Items.LIGHT_GRAY_STAINED_GLASS_PANE.guiStack()
             )
+        }
+
+        private fun convertEntryToNumberTag(input: String): AbstractNumberTag {
+            try {
+                val value = input.cleanNumber()
+
+                // Decimal, default to double if not specified
+                if (input.contains('.')) {
+                    if (input.endsWith('F', true)) {
+                        return FloatTag.of(value.toFloat())
+                    }
+                    return DoubleTag.of(value.toDouble())
+                }
+
+                // Fixed number, default to int
+                if (input.endsWith("L", true)) {
+                    return LongTag.of(value.toLong())
+                }
+
+                if (input.endsWith("B", true)) {
+                    return ByteTag.of(value.toByte())
+                }
+
+                if (input.endsWith("S", true)) {
+                    return ShortTag.of(value.toShort())
+                }
+
+                return IntTag.of(value.toInt())
+            } catch (err: Throwable) {
+                err.printStackTrace()
+                throw InvalidArgument()
+            }
         }
 
         @ExperimentalTime
