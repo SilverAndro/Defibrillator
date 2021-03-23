@@ -13,6 +13,7 @@ import mc.defibrillator.gui.inventory.ItemActionMap
 import mc.defibrillator.gui.inventory.SimpleDefaultedInventory
 import mc.defibrillator.gui.util.*
 import mc.defibrillator.util.*
+import net.fabricmc.fabric.api.util.NbtType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.Items
@@ -191,46 +192,95 @@ class ScreenHandlerFactory(
             }
 
             var index = 9
-            addEntry(index++, Items.SHULKER_BOX.guiStack("Compound Tag")) { _, composite ->
-                getTextEntry(composite, "compound name") {
-                    punchInAndExit(CompoundTag(), it ?: "PLACEHOLDER", composite)
+
+            val active = state.getActiveTag()
+
+            fun canAdd(nbtType: Int): Boolean {
+                return if (active is AbstractListTag<*>) {
+                    active.wouldAccept(nbtType)
+                } else {
+                    true
                 }
             }
-            addEntry(index++, Items.WRITABLE_BOOK.guiStack("List Tag")) { _, composite ->
-                getTextEntry(composite, "list name") {
-                    punchInAndExit(ListTag(), it ?: "PLACEHOLDER", composite)
+
+            if (canAdd(NbtType.COMPOUND))
+                addEntry(index++, Items.SHULKER_BOX.guiStack("Compound Tag")) { _, composite ->
+                    getTextEntry(composite, "compound name") {
+                        punchInAndExit(CompoundTag(), it ?: "PLACEHOLDER", composite)
+                    }
                 }
-            }
-            addEntry(index++, Items.PLAYER_HEAD.guiStack("Byte").asHashtag()) { _, composite ->
-                getDoubleTextEntry(composite, "byte value") { name, value ->
-                    punchInAndExit(ByteTag.of(value.toInt().toByte()), name, composite)
+
+            if (canAdd(NbtType.LIST))
+                addEntry(index++, Items.WRITABLE_BOOK.guiStack("List Tag")) { _, composite ->
+                    getTextEntry(composite, "list name") {
+                        punchInAndExit(ListTag(), it ?: "PLACEHOLDER", composite)
+                    }
                 }
-            }
+
+            if (canAdd(NbtType.INT_ARRAY))
+                addEntry(index++, Items.WRITABLE_BOOK.guiStack("Int Array Tag")) { _, composite ->
+                    getTextEntry(composite, "int array name") {
+                        punchInAndExit(IntArrayTag(listOf()), it ?: "PLACEHOLDER", composite)
+                    }
+                }
+
+            if (canAdd(NbtType.BYTE_ARRAY))
+                addEntry(index++, Items.WRITABLE_BOOK.guiStack("Byte Array Tag")) { _, composite ->
+                    getTextEntry(composite, "byte array name") {
+                        punchInAndExit(ByteArrayTag(listOf()), it ?: "PLACEHOLDER", composite)
+                    }
+                }
+
+            if (canAdd(NbtType.LONG_ARRAY))
+                addEntry(index++, Items.WRITABLE_BOOK.guiStack("Long Array Tag")) { _, composite ->
+                    getTextEntry(composite, "long array name") {
+                        punchInAndExit(LongArrayTag(listOf()), it ?: "PLACEHOLDER", composite)
+                    }
+                }
+
+            if (canAdd(NbtType.BYTE))
+                addEntry(index++, Items.PLAYER_HEAD.guiStack("Byte").asHashtag()) { _, composite ->
+                    getDoubleTextEntry(composite, "byte value") { name, value ->
+                        punchInAndExit(ByteTag.of(value.toInt().toByte()), name, composite)
+                    }
+                }
+
+            if (canAdd(NbtType.FLOAT))
             addEntry(index++, Items.PLAYER_HEAD.guiStack("Float").asHashtag()) { _, composite ->
                 getDoubleTextEntry(composite, "float value") { name, value ->
                     punchInAndExit(FloatTag.of(value.toFloat()), name, composite)
                 }
             }
+
+            if (canAdd(NbtType.DOUBLE))
             addEntry(index++, Items.PLAYER_HEAD.guiStack("Double").asHashtag()) { _, composite ->
                 getDoubleTextEntry(composite, "double value") { name, value ->
                     punchInAndExit(DoubleTag.of(value.toDouble()), name, composite)
                 }
             }
+
+            if (canAdd(NbtType.INT))
             addEntry(index++, Items.PLAYER_HEAD.guiStack("Int").asHashtag()) { _, composite ->
                 getDoubleTextEntry(composite, "integer value") { name, value ->
                     punchInAndExit(IntTag.of(value.toInt()), name, composite)
                 }
             }
+
+            if (canAdd(NbtType.LONG))
             addEntry(index++, Items.PLAYER_HEAD.guiStack("Long").asHashtag()) { _, composite ->
                 getDoubleTextEntry(composite, "long value") { name, value ->
                     punchInAndExit(LongTag.of(value.toLong()), name, composite)
                 }
             }
+
+            if (canAdd(NbtType.SHORT))
             addEntry(index++, Items.PLAYER_HEAD.guiStack("Short").asHashtag()) { _, composite ->
                 getDoubleTextEntry(composite, "short value") { name, value ->
                     punchInAndExit(ShortTag.of(value.toShort()), name, composite)
                 }
             }
+
+            if (canAdd(NbtType.STRING))
             addEntry(index, Items.PAPER.guiStack("String")) { _, composite ->
                 getDoubleTextEntry(composite, "string value") { name, value ->
                     punchInAndExit(StringTag.of(value), name, composite)

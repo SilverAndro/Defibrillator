@@ -6,6 +6,7 @@
 
 package mc.defibrillator.util
 
+import net.fabricmc.fabric.api.util.NbtType
 import net.minecraft.nbt.AbstractListTag
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
@@ -22,5 +23,13 @@ fun Tag.delete(key: String) {
     when (this) {
         is CompoundTag -> this.remove(key)
         is AbstractListTag<*> -> this.removeAt(key.toInt())
+    }
+}
+
+fun AbstractListTag<*>.wouldAccept(nbtType: Int): Boolean {
+    return if (this.elementType == NbtType.END.toByte()) {
+        true
+    } else {
+        this.elementType == nbtType.toByte()
     }
 }
