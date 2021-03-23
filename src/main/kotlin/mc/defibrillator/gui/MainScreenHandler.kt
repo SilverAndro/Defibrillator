@@ -96,8 +96,6 @@ class MainScreenHandler(
     }
 
     override fun onSlotClick(slot: Int, data: Int, actionType: SlotActionType, playerEntity: PlayerEntity): ItemStack {
-        println("Slot $slot was clicked, data $data and action $actionType")
-
         if (actionType == SlotActionType.PICKUP) {
             actions.runActionAt(slot, data, GuiStateComposite(state, playerInventory, inv))
         }
