@@ -113,7 +113,7 @@ class Defibrillator : ModInitializer {
                 }
                 literal("recache") {
                     executes(debug = true) {
-                        OfflinePlayerCache.findNotInCache()
+                        OfflinePlayerCache.recache()
                         it.source.sendFeedback(
                             LiteralText("Defibrillator offline player cache successfully re-cached"),
                             true
@@ -165,6 +165,7 @@ class Defibrillator : ModInitializer {
                                         delay(2.toDuration(DurationUnit.SECONDS))
                                     }
 
+                                    OfflinePlayerCache.recache()
                                     OfflinePlayerCache.filterByOnline(it.source.playerNames)
                                     it.source.sendFeedback(
                                         LiteralText(
@@ -198,7 +199,7 @@ class Defibrillator : ModInitializer {
             while (isActive) {
                 // Re-cache every 3 minutes
                 delay(3.toDuration(DurationUnit.MINUTES))
-                OfflinePlayerCache.findNotInCache()
+                OfflinePlayerCache.recache()
             }
         }
     }
