@@ -9,7 +9,7 @@ package mc.defibrillator.util
 import kotlin.reflect.KProperty
 
 class DynamicLimitedIntProp(private val minMaker: () -> Int, private val maxMaker: () -> Int) {
-    var backing = 0;
+    private var backing = 0
 
     operator fun getValue(thisRef: Any, property: KProperty<*>): Int {
         return backing

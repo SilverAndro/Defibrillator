@@ -13,6 +13,7 @@ import mc.defibrillator.gui.ScreenHandlerFactory
 import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.data.RightClickMode
+import mc.defibrillator.util.asHashtag
 import mc.defibrillator.util.copyableText
 import mc.defibrillator.util.delete
 import mc.defibrillator.util.retrieve
