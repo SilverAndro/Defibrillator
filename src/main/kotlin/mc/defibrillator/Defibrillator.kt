@@ -130,10 +130,10 @@ class Defibrillator : ModInitializer {
 
                             GlobalScope.launch {
                                 val possible = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile().list()
-                                val uuids = OfflinePlayerCache.all.keys.map { uuid -> uuid.toString() }
+                                var uuids = OfflinePlayerCache.all.keys.map { uuid -> uuid.toString() }
 
                                 if (possible != null) {
-                                    val needed = possible
+                                    var needed = possible
                                         .map { filename -> filename.replace(".dat_old", "").replace(".dat", "") }
                                         .distinct()
                                         .filter { cleaned -> !uuids.contains(cleaned) }
@@ -147,10 +147,30 @@ class Defibrillator : ModInitializer {
                                         return@launch
                                     }
 
+                                    val before = needed.size
+                                    needed.forEach { uuid ->
+                                        val fromString = UUID.fromString(uuid)
+                                        val possibleProfile = DefibState.serverInstance.userCache.getByUuid(fromString)
+                                        if (possibleProfile != null) {
+                                            OfflinePlayerCache.all[fromString] = possibleProfile.name
+                                            OfflinePlayerCache.currentlyOffline[fromString] = possibleProfile.name
+                                        }
+                                    }
+                                    uuids = OfflinePlayerCache.all.keys.map { uuid -> uuid.toString() }
+                                    needed = needed.filter { cleaned -> !uuids.contains(cleaned) }
+
+                                    if (needed.isEmpty()) {
+                                        it.source.sendFeedback(
+                                            LiteralText("${before - needed.size} users imported from usercache. leaving none unknown, canceling"),
+                                            true
+                                        )
+                                        cancel()
+                                        return@launch
+                                    }
 
                                     it.source.sendFeedback(
                                         LiteralText(
-                                            "Found ${needed.size} unknown users, beginning import " +
+                                            "Found ${needed.size} unknown users (${before - needed.size} imported from usercache), beginning import " +
                                                     "(Estimated time until completion: ${
                                                         (2.1).toDuration(DurationUnit.SECONDS).times(needed.size)
                                                     })"
