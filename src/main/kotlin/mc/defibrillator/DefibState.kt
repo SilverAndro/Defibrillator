@@ -9,6 +9,8 @@ package mc.defibrillator
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import java.io.File
+import java.util.*
+import kotlin.collections.HashMap
 
 object DefibState {
     val cache = File("defib_cache")
@@ -16,6 +18,8 @@ object DefibState {
     val awaitingInput: HashMap<ServerPlayerEntity, (String) -> Unit> = hashMapOf()
     @JvmField
     val readInput: HashMap<ServerPlayerEntity, MutableList<String>> = hashMapOf()
+
+    val activeSessions: HashMap<UUID, ServerPlayerEntity> = hashMapOf()
 
     @JvmStatic
     internal lateinit var serverInstance: MinecraftServer
