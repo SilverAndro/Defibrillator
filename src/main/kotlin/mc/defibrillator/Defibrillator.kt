@@ -176,7 +176,7 @@ class Defibrillator : ModInitializer {
 
                                     if (needed.isEmpty()) {
                                         it.source.sendFeedback(
-                                            LiteralText("${before - needed.size} users imported from usercache. leaving none unknown, canceling"),
+                                            LiteralText("${before - needed.size} users imported from usercache. leaving none unknown, saving"),
                                             true
                                         )
                                         cancel()

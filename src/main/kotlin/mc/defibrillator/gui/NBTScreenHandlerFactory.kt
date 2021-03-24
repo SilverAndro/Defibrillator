@@ -19,11 +19,13 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.Items
 import net.minecraft.nbt.*
+import net.minecraft.network.MessageType
 import net.minecraft.screen.NamedScreenHandlerFactory
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.minecraft.util.Util
 import kotlin.time.ExperimentalTime
 
 class NBTScreenHandlerFactory(
@@ -39,7 +41,7 @@ class NBTScreenHandlerFactory(
     override fun createMenu(syncId: Int, inv: PlayerInventory, player: PlayerEntity): ScreenHandler {
         val defaultedInv = newDefaulted()
         val actionMap = makeAndUpdateNBTViewer(defaultedInv, state)
-        return MainScreenHandler(syncId, inv, defaultedInv, actionMap, state, onClose)
+        return NBTScreenHandler(syncId, inv, defaultedInv, actionMap, state, onClose)
     }
 
     override fun getDisplayName(): Text {
@@ -63,21 +65,19 @@ class NBTScreenHandlerFactory(
             }
 
             // Delete option
-            val deleteOn = state.clickMode == RightClickMode.DELETE
-            addEntry(
-                2, Items.TNT
-                    .guiStack(
-                        "Delete (${if (deleteOn) "DELETES ON RIGHT-CLICK" else "OFF"})",
-                        if (deleteOn) Formatting.RED else Formatting.WHITE
-                    )
-                    .withGlint(deleteOn)
-            ) { _, composite ->
-                if (deleteOn) {
-                    composite.state.clickMode = RightClickMode.PASS
-                } else {
-                    composite.state.clickMode = RightClickMode.DELETE
+            when (state.clickMode) {
+                RightClickMode.PASS -> addEntry(2, Items.GLASS.guiStack("Right Click: None")) { _, composite ->
+                    composite.state.clickMode = RightClickMode.COPY
+                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
                 }
-                makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                RightClickMode.COPY -> addEntry(2, Items.EMERALD.guiStack("Right Click: Copy")) { _, composite ->
+                    composite.state.clickMode = RightClickMode.DELETE
+                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                }
+                RightClickMode.DELETE -> addEntry(2, Items.TNT.guiStack("Right Click: Delete", Formatting.RED).withGlint()) { _, composite ->
+                    composite.state.clickMode = RightClickMode.PASS
+                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                }
             }
 
             // Up / parent
@@ -101,20 +101,14 @@ class NBTScreenHandlerFactory(
                     .withLore(info)
             ) { _, _ -> }
 
-            // Copy option
-            val copyOn = state.clickMode == RightClickMode.COPY
-            addEntry(
-                5,
-                Items.EMERALD
-                    .guiStack("Copy to Clipboard (${if (copyOn) "copy on right-click" else "off"})")
-                    .withGlint(copyOn)
-            ) { _, composite ->
-                if (copyOn) {
-                    composite.state.clickMode = RightClickMode.PASS
-                } else {
-                    composite.state.clickMode = RightClickMode.COPY
+            // Cancel button
+            addEntry(5, Items.BARRIER.guiStack("Cancel changes (Right Click)")) { data, composite ->
+                if (data == 1) {
+                    composite.state.suppressOnClose.set(true)
+                    composite.player.closeHandledScreen()
+                    composite.player.sendSystemMessage(LiteralText("Discarded changes"), Util.NIL_UUID)
+                    composite.state.suppressOnClose.set(false)
                 }
-                makeAndUpdateNBTViewer(defaultedInventory, composite.state)
             }
 
             // Add entry
