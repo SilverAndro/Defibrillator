@@ -29,6 +29,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.sound.SoundCategory
 import net.minecraft.sound.SoundEvents
 import net.minecraft.text.LiteralText
+import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Util
 import net.minecraft.util.WorldSavePath
@@ -64,33 +65,46 @@ class Defibrillator : ModInitializer {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
                             executes(debug = true) {
-                                openNBTGui(
-                                    it.source.player,
-                                    it.getArgument("playerData", String::class.java),
-                                    MenuState(
-                                        OfflinePlayerSuggester.getPlayerData(it, "playerData")
-                                    )
-                                ) { state ->
-                                    try {
-                                        val name = it.getArgument("playerData", String::class.java)
-                                        val uuid = OfflinePlayerCache.getByName(name)
-                                        val dir = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile()
-
-                                        val compoundTag = state.rootTag
-                                        val file = File.createTempFile(
-                                            "$uuid-",
-                                            ".dat",
-                                            dir
+                                val uuid = OfflinePlayerCache.getByName(
+                                    it.getArgument("playerData", String::class.java)
+                                )
+                                if (!DefibState.activeSessions.contains(uuid)) {
+                                    DefibState.activeSessions[uuid] = it.source.player
+                                    openNBTGui(
+                                        it.source.player,
+                                        it.getArgument("playerData", String::class.java),
+                                        MenuState(
+                                            OfflinePlayerSuggester.getPlayerData(it, "playerData")
                                         )
-                                        NbtIo.writeCompressed(compoundTag, file)
-                                        val file2 = File(dir, "$uuid.dat")
-                                        val file3 = File(dir, "$uuid.dat_old")
-                                        Util.backupAndReplace(file2, file, file3)
-                                        it.source.sendFeedback(LiteralText("Saved user data"), true)
-                                    } catch (ex: Exception) {
-                                        it.source.sendError(LiteralText("Failed to save user data"))
-                                        ex.printStackTrace()
+                                    ) { state ->
+                                        try {
+                                            val dir =
+                                                DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile()
+
+                                            val compoundTag = state.rootTag
+                                            val file = File.createTempFile(
+                                                "$uuid-",
+                                                ".dat",
+                                                dir
+                                            )
+                                            NbtIo.writeCompressed(compoundTag, file)
+                                            val file2 = File(dir, "$uuid.dat")
+                                            val file3 = File(dir, "$uuid.dat_old")
+                                            Util.backupAndReplace(file2, file, file3)
+                                            it.source.sendFeedback(LiteralText("Saved user data"), true)
+                                        } catch (ex: Exception) {
+                                            it.source.sendError(LiteralText("Failed to save user data").formatted(Formatting.RED))
+                                            ex.printStackTrace()
+                                        } finally {
+                                            DefibState.activeSessions.remove(uuid)
+                                        }
                                     }
+                                } else {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "${DefibState.activeSessions[uuid]?.entityName} already has a session open for that uuid!"
+                                        ).formatted(Formatting.RED)
+                                    )
                                 }
                             }
                         }
@@ -129,7 +143,8 @@ class Defibrillator : ModInitializer {
                             )
 
                             GlobalScope.launch {
-                                val possible = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile().list()
+                                val possible =
+                                    DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile().list()
                                 var uuids = OfflinePlayerCache.all.keys.map { uuid -> uuid.toString() }
 
                                 if (possible != null) {
