@@ -23,7 +23,7 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.collection.DefaultedList
 
-class MainScreenHandler(
+class NBTScreenHandler(
     syncId: Int,
     private val playerInventory: PlayerInventory,
     private val inv: SimpleDefaultedInventory,
