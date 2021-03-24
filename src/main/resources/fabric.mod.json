@@ -7,7 +7,10 @@
   "authors": [
     "TheoreticallyUseful / P03W"
   ],
-  "contact": {},
+  "contact": {
+    "sources": "https://github.com/P03W/Defibrillator",
+    "issues": "https://github.com/P03W/Defibrillator/issues"
+  },
   "license": "MPL-2.0",
   "icon": "assets/defibrillator/icon.png",
   "environment": "*",
