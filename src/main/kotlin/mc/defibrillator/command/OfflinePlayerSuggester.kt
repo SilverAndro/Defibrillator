@@ -17,6 +17,7 @@ import me.basiqueevangelist.nevseti.OfflineNameCache
 import net.minecraft.command.CommandSource
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
+import net.minecraft.server.command.CommandManager
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Formatting
@@ -29,12 +30,10 @@ class OfflinePlayerSuggester : SuggestionProvider<ServerCommandSource> {
         builder: SuggestionsBuilder
     ): CompletableFuture<Suggestions> {
         if (context.source is CommandSource) {
-            return Suggestions.empty()
-            /*OfflinePlayerCache.filterByOnline((context.source as CommandSource).playerNames)
             return CommandSource.suggestMatching(
-                OfflinePlayerCache.getOfflinePlayerNames((context.source as CommandSource).playerNames),
-                builder,
-            )*/
+                OfflineNameCache.INSTANCE.names.values.filter { context.source.playerNames.contains(it).not() },
+                builder
+            )
         }
         return Suggestions.empty()
     }

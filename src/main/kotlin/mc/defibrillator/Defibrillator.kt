@@ -34,7 +34,7 @@ class Defibrillator : ModInitializer {
         ServerTickEvents.END_WORLD_TICK.register { world ->
             world.players.forEach {
                 it.inventory.remove(
-                    { stack -> stack.orCreateTag.contains("defib-DELETE") },
+                    { stack -> stack.tag?.contains("defib-DELETE") ?: false },
                     Int.MAX_VALUE,
                     it.playerScreenHandler.method_29281()
                 )
