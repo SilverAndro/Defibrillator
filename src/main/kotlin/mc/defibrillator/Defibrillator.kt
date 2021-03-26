@@ -60,7 +60,7 @@ class Defibrillator : ModInitializer {
                                             it.source.player,
                                             it.getArgument("playerData", String::class.java),
                                             MenuState(
-                                                OfflineDataCache.INSTANCE.get(uuid),
+                                                OfflineDataCache.INSTANCE.get(uuid).copy(),
                                                 uuid
                                             )
                                         ) { state ->
