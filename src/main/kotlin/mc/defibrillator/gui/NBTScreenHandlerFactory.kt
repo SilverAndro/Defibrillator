@@ -155,13 +155,14 @@ class NBTScreenHandlerFactory(
             defaultedInventory.setStack(slot, clean.getStack(slot))
         }
         state.handler?.actions = actionMap
+        state.isInAddMenu = false
         return actionMap
     }
 
     @ExperimentalTime
     private fun makeAndUpdateNBTTagAdder(
         defaultedInventory: SimpleDefaultedInventory, state: MenuState
-    ): ItemActionMap {
+    ) {
         val actionMap = ItemActionMap {
             // Cancel
             addEntry(0, Items.PLAYER_HEAD.guiStack("Cancel").applySkull(OUT_TEXTURE, OUT_ID)) { _, composite ->
@@ -301,7 +302,7 @@ class NBTScreenHandlerFactory(
             defaultedInventory.setStack(slot, clean.getStack(slot))
         }
         state.handler?.actions = actionMap
-        return actionMap
+        state.isInAddMenu = true
     }
 
     companion object {

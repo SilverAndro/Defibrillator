@@ -13,7 +13,9 @@ import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.util.openNBTGui
 import mc.microconfig.MicroConfig
 import me.basiqueevangelist.nevseti.OfflineDataCache
+import me.basiqueevangelist.nevseti.OfflineDataChanged
 import me.basiqueevangelist.nevseti.OfflineNameCache
+import me.basiqueevangelist.nevseti.nbt.CompoundTagView
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
@@ -24,6 +26,7 @@ import net.minecraft.text.LiteralText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Util
+import java.util.*
 import kotlin.time.ExperimentalTime
 
 class Defibrillator : ModInitializer {
@@ -38,6 +41,18 @@ class Defibrillator : ModInitializer {
                     Int.MAX_VALUE,
                     it.playerScreenHandler.method_29281()
                 )
+            }
+        }
+
+        OfflineDataChanged.EVENT.register { uuid, data ->
+            try {
+                val state = DefibState.activeSessions.getB(uuid)
+                state.rootTag = data.copy()
+                if (!state.isInAddMenu) {
+                    state.factory?.makeAndUpdateNBTViewer(state.handler?.inv!!, state)
+                }
+            } catch (ignored: NullPointerException) {
+                // Don't have a session
             }
         }
 

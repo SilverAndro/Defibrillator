@@ -26,7 +26,7 @@ import net.minecraft.util.collection.DefaultedList
 class NBTScreenHandler(
     syncId: Int,
     private val playerInventory: PlayerInventory,
-    private val inv: SimpleDefaultedInventory,
+    val inv: SimpleDefaultedInventory,
     var actions: ItemActionMap,
     private val state: MenuState,
     private val onClose: (MenuState) -> Unit

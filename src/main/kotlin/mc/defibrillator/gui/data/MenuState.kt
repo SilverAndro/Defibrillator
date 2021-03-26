@@ -15,10 +15,11 @@ import net.minecraft.nbt.Tag
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-class MenuState(val rootTag: CompoundTag, val playerUUID: UUID) {
+class MenuState(var rootTag: CompoundTag, val playerUUID: UUID) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()
     var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })
+    var isInAddMenu = false
 
     var handler: NBTScreenHandler? = null
     var factory: NBTScreenHandlerFactory? = null
