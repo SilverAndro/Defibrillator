@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package mc.defibrillator.util
+package mc.defibrillator.util.classes
 
 import kotlin.reflect.KProperty
 

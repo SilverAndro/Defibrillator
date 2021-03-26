@@ -19,14 +19,11 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtIo
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Util
-import net.minecraft.util.WorldSavePath
-import java.io.File
 import kotlin.time.ExperimentalTime
 
 class Defibrillator : ModInitializer {
@@ -59,8 +56,7 @@ class Defibrillator : ModInitializer {
                                         it.getArgument("playerData", String::class.java)
                                     )
                                     if (!DefibState.activeSessions.contains(uuid)) {
-                                        DefibState.activeSessions[uuid] = it.source.player
-                                        openNBTGui(
+                                        val state = openNBTGui(
                                             it.source.player,
                                             it.getArgument("playerData", String::class.java),
                                             MenuState(
@@ -82,10 +78,16 @@ class Defibrillator : ModInitializer {
                                                 DefibState.activeSessions.remove(uuid)
                                             }
                                         }
+
+                                        DefibState.activeSessions.set(
+                                            uuid,
+                                            it.source.player,
+                                            state
+                                        )
                                     } else {
                                         it.source.sendError(
                                             LiteralText(
-                                                "${DefibState.activeSessions[uuid]?.entityName} already has a session open for that uuid!"
+                                                "${DefibState.activeSessions[uuid].first.entityName} already has a session open for that uuid!"
                                             ).formatted(Formatting.RED)
                                         )
                                     }
@@ -123,6 +125,6 @@ class Defibrillator : ModInitializer {
     }
 
     companion object {
-        val config: DefibrillatorConfig = MicroConfig.getOrCreate("defibrillator", DefibrillatorConfig())
+        val config: DefibrillatorConfig = MicroConfig.getOrCreate("defib", DefibrillatorConfig())
     }
 }

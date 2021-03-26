@@ -6,32 +6,30 @@
 
 package mc.defibrillator.gui.inventory
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap
-import mc.defibrillator.gui.util.GuiAction
 import mc.defibrillator.gui.data.GuiStateComposite
+import mc.defibrillator.gui.util.GuiAction
+import mc.defibrillator.util.classes.DualHashMap
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
 
 class ItemActionMap(method: ItemActionMap.()->Unit) {
-    private val backingActionMap: Int2ObjectArrayMap<GuiAction> = Int2ObjectArrayMap()
-    private val backingStackMap: Int2ObjectArrayMap<ItemStack> = Int2ObjectArrayMap()
+    private val backingMap: DualHashMap<Int, GuiAction, ItemStack> = DualHashMap()
 
     init {
         this.method()
     }
 
     fun runActionAt(slotId: Int, data: Int, composite: GuiStateComposite) {
-        if (backingActionMap.containsKey(slotId)) {
-            backingActionMap[slotId].invoke(data, composite)
+        if (backingMap.contains(slotId)) {
+            backingMap[slotId].first.invoke(data, composite)
         }
     }
 
     fun addEntry(slot: Int, stack: ItemStack, action: GuiAction) {
-        backingActionMap[slot] = action
-        backingStackMap[slot] = stack
+        backingMap.set(slot, action, stack)
     }
 
     fun copyIntoInventory(inv: Inventory) {
-        backingStackMap.forEach { (slot, item) -> inv.setStack(slot, item) }
+        backingMap.forEach { slot, _, item -> inv.setStack(slot, item) }
     }
 }

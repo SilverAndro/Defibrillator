@@ -7,6 +7,7 @@
 package mc.defibrillator.gui
 
 import mc.defibrillator.DefibState
+import mc.defibrillator.Defibrillator
 import mc.defibrillator.exception.InvalidArgument
 import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
@@ -235,7 +236,8 @@ class NBTScreenHandlerFactory(
                 }
 
             // Give a generic number option if multiple would be supported
-            if (canAdd(NbtType.END)) {
+            // And enabled in config
+            if (canAdd(NbtType.END) && Defibrillator.config.collapseNumberOptions) {
                 addEntry(index++, Items.PLAYER_HEAD.guiStack("Number").asHashtag()) { _, composite ->
                     getDoubleTextEntry(composite, "number value") { name, value ->
                         punchInAndExit(convertEntryToNumberTag(value), name, composite)

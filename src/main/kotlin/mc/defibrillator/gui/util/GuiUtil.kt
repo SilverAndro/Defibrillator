@@ -31,10 +31,10 @@ import kotlin.time.toDuration
 
 typealias GuiAction = (Int, GuiStateComposite) -> Unit
 
-fun openNBTGui(player: ServerPlayerEntity, title: String, state: MenuState, onClose: (MenuState) -> Unit) {
-    player.openHandledScreen(
-        NBTScreenHandlerFactory(title, state, onClose)
-    )
+fun openNBTGui(player: ServerPlayerEntity, title: String, state: MenuState, onClose: (MenuState) -> Unit): MenuState {
+    val factory = NBTScreenHandlerFactory(title, state, onClose)
+    player.openHandledScreen(factory)
+    return state
 }
 
 @ExperimentalTime

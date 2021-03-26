@@ -8,7 +8,7 @@ package mc.defibrillator.gui.data
 
 import mc.defibrillator.gui.NBTScreenHandler
 import mc.defibrillator.gui.NBTScreenHandlerFactory
-import mc.defibrillator.util.DynamicLimitedIntProp
+import mc.defibrillator.util.classes.DynamicLimitedIntProp
 import net.minecraft.nbt.AbstractListTag
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag

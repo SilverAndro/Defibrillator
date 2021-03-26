@@ -10,6 +10,6 @@ import mc.microconfig.Comment;
 import mc.microconfig.ConfigData;
 
 public class DefibrillatorConfig implements ConfigData {
-    @Comment("Delay in minutes between the cache being recached")
-    public double recacheDelay = 3.0;
+    @Comment("If the \"Number\" option should be shown instead of the specific tag options")
+    public boolean collapseNumberOptions = true;
 }

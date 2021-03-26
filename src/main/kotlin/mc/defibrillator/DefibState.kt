@@ -6,11 +6,11 @@
 
 package mc.defibrillator
 
+import mc.defibrillator.gui.data.MenuState
+import mc.defibrillator.util.classes.DualHashMap
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
-import java.io.File
 import java.util.*
-import kotlin.collections.HashMap
 
 object DefibState {
     @JvmField
@@ -18,7 +18,7 @@ object DefibState {
     @JvmField
     val readInput: HashMap<ServerPlayerEntity, MutableList<String>> = hashMapOf()
 
-    val activeSessions: HashMap<UUID, ServerPlayerEntity> = hashMapOf()
+    val activeSessions: DualHashMap<UUID, ServerPlayerEntity, MenuState> = DualHashMap()
 
     @JvmStatic
     internal lateinit var serverInstance: MinecraftServer
