@@ -6,6 +6,7 @@
 
 package mc.defibrillator.gui
 
+import mc.defibrillator.DefibState
 import mc.defibrillator.exception.InvalidArgument
 import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
@@ -106,6 +107,7 @@ class NBTScreenHandlerFactory(
                     composite.state.suppressOnClose.set(true)
                     composite.player.closeHandledScreen()
                     composite.player.sendSystemMessage(LiteralText("Discarded changes"), Util.NIL_UUID)
+                    DefibState.activeSessions.remove(composite.state.playerUUID)
                     composite.state.suppressOnClose.set(false)
                 }
             }

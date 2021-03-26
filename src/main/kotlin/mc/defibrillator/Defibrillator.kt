@@ -64,31 +64,12 @@ class Defibrillator : ModInitializer {
                                             it.source.player,
                                             it.getArgument("playerData", String::class.java),
                                             MenuState(
-                                                OfflineDataCache.INSTANCE.get(
-                                                    OfflineNameCache.INSTANCE.getUUIDFromName(
-                                                        it.getArgument(
-                                                            "playerData",
-                                                            String::class.java
-                                                        )
-                                                    )
-                                                )
+                                                OfflineDataCache.INSTANCE.get(uuid),
+                                                uuid
                                             )
                                         ) { state ->
                                             try {
-                                                val dir =
-                                                    DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA)
-                                                        .toFile()
-
-                                                val compoundTag = state.rootTag
-                                                val file = File.createTempFile(
-                                                    "$uuid-",
-                                                    ".dat",
-                                                    dir
-                                                )
-                                                NbtIo.writeCompressed(compoundTag, file)
-                                                val file2 = File(dir, "$uuid.dat")
-                                                val file3 = File(dir, "$uuid.dat_old")
-                                                Util.backupAndReplace(file2, file, file3)
+                                                OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
                                                 it.source.sendFeedback(LiteralText("Saved user data"), true)
                                             } catch (ex: Exception) {
                                                 it.source.sendError(
@@ -124,7 +105,8 @@ class Defibrillator : ModInitializer {
                                 it.source.player,
                                 "Held Item",
                                 MenuState(
-                                    it.source.player.mainHandStack.toTag(CompoundTag())
+                                    it.source.player.mainHandStack.toTag(CompoundTag()),
+                                    Util.NIL_UUID
                                 )
                             ) { state ->
                                 it.source.player.setStackInHand(

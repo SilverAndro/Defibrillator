@@ -12,9 +12,10 @@ import mc.defibrillator.util.DynamicLimitedIntProp
 import net.minecraft.nbt.AbstractListTag
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-class MenuState(val rootTag: CompoundTag) {
+class MenuState(val rootTag: CompoundTag, val playerUUID: UUID) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()
     var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })
