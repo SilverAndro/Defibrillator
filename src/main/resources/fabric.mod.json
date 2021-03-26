@@ -14,7 +14,6 @@
   "license": "MPL-2.0",
   "icon": "assets/defibrillator/icon.png",
   "environment": "*",
-  "accessWidener" : "defib.aw",
   "entrypoints": {
     "main": [
       "mc.defibrillator.Defibrillator"

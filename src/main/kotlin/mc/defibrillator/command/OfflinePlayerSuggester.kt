@@ -11,8 +11,9 @@ import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import mc.defibrillator.DefibState
-import mc.defibrillator.OfflinePlayerCache
 import mc.defibrillator.exception.InvalidArgument
+import me.basiqueevangelist.nevseti.OfflineDataCache
+import me.basiqueevangelist.nevseti.OfflineNameCache
 import net.minecraft.command.CommandSource
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
@@ -28,34 +29,13 @@ class OfflinePlayerSuggester : SuggestionProvider<ServerCommandSource> {
         builder: SuggestionsBuilder
     ): CompletableFuture<Suggestions> {
         if (context.source is CommandSource) {
-            OfflinePlayerCache.filterByOnline((context.source as CommandSource).playerNames)
+            return Suggestions.empty()
+            /*OfflinePlayerCache.filterByOnline((context.source as CommandSource).playerNames)
             return CommandSource.suggestMatching(
                 OfflinePlayerCache.getOfflinePlayerNames((context.source as CommandSource).playerNames),
                 builder,
-            )
+            )*/
         }
         return Suggestions.empty()
-    }
-
-    companion object {
-        fun getPlayerData(context: CommandContext<ServerCommandSource>, name: String): CompoundTag {
-            val providedName = context.getArgument(name, String::class.java)
-            val uuid = OfflinePlayerCache.getByName(providedName)
-
-            val file = DefibState.serverInstance.getSavePath(WorldSavePath.PLAYERDATA).toFile()
-                .resolve(OfflinePlayerCache.getByName(providedName).toString() + ".dat")
-
-            if (!file.exists()) {
-                generateError(context, "No .dat file associated with that uuid! ($uuid)")
-            }
-
-            context.source.sendFeedback(LiteralText("Opening player data manager for \"$providedName\" ($uuid)"), true)
-            return NbtIo.readCompressed(file)
-        }
-
-        private fun generateError(context: CommandContext<ServerCommandSource>, error: String, exception: Exception = InvalidArgument()) {
-            context.source.sendError(LiteralText(error).formatted(Formatting.RED))
-            throw exception
-        }
     }
 }

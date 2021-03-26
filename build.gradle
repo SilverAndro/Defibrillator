@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '0.7-SNAPSHOT'
+    id 'fabric-loom' version '0.6-SNAPSHOT'
     id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '1.4.31'
     id 'net.minecrell.licenser' version "0.4.1"
@@ -16,11 +16,6 @@ repositories {
     maven {
         url 'https://jitpack.io'
     }
-    mavenCentral()
-}
-
-minecraft {
-    accessWidener =  file("src/main/resources/defib.aw")
 }
 
 dependencies {
@@ -43,9 +38,9 @@ dependencies {
     modImplementation 'com.github.P03W:Microconfig:2.0.0'
     include 'com.github.P03W:Microconfig:2.0.0'
 
-    // Fuel
-    implementation 'com.github.kittinunf.fuel:fuel:2.3.1'
-    implementation 'com.github.kittinunf.fuel:fuel-json:2.3.1'
+    // Ne-V-Seti
+    modImplementation 'com.github.BasiqueEvangelist:ne-v-seti:0.1.1'
+    include 'com.github.BasiqueEvangelist:ne-v-seti:0.1.1'
 }
 
 // Licenser

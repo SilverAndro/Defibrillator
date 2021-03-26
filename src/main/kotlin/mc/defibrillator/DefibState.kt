@@ -13,7 +13,6 @@ import java.util.*
 import kotlin.collections.HashMap
 
 object DefibState {
-    val cache = File("defib_cache")
     @JvmField
     val awaitingInput: HashMap<ServerPlayerEntity, (String) -> Unit> = hashMapOf()
     @JvmField
@@ -23,8 +22,4 @@ object DefibState {
 
     @JvmStatic
     internal lateinit var serverInstance: MinecraftServer
-
-    init {
-        cache.createNewFile()
-    }
 }
