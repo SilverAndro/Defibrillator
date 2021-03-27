@@ -6,6 +6,9 @@
 
 package mc.defibrillator.util.classes
 
+/**
+ * A data structure that keeps 2 `HashMap`s updated in parallel
+ */
 class DualHashMap<KEY, TYPE_A, TYPE_B> {
     private val backingA: HashMap<KEY, TYPE_A> = hashMapOf()
     private val backingB: HashMap<KEY, TYPE_B> = hashMapOf()
@@ -21,7 +24,6 @@ class DualHashMap<KEY, TYPE_A, TYPE_B> {
     }
 
     fun contains(key: KEY): Boolean {
-        // They should always be updated in parallel, so no need to check twice
         return backingA.containsKey(key)
     }
 

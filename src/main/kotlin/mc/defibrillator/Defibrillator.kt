@@ -42,6 +42,7 @@ class Defibrillator : ModInitializer {
             }
         }
 
+        // Refresh sessions when data changes
         OfflineDataChanged.EVENT.register { uuid, data ->
             try {
                 val state = DefibState.activeSessions.getB(uuid)
@@ -54,6 +55,7 @@ class Defibrillator : ModInitializer {
             }
         }
 
+        // Main command
         CommandRegistrationCallback.EVENT.register { dispatcher: CommandDispatcher<ServerCommandSource>, _: Boolean ->
             dispatcher.register(aegisCommand("defib") {
                 requires {

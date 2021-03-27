@@ -12,6 +12,11 @@ import net.minecraft.nbt.IntArrayTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.StringTag
 
+/**
+ * Adds each entry in loreLines as plain text to the tooltip
+ *
+ * Automatically adds an extra line break at the begining
+ */
 fun ItemStack.withLore(loreLines: List<String>): ItemStack {
     val display = (this.orCreateTag.get("display") as CompoundTag?) ?: CompoundTag()
     display.put("Lore", ListTag().apply {
@@ -24,6 +29,9 @@ fun ItemStack.withLore(loreLines: List<String>): ItemStack {
     return this
 }
 
+/**
+ * Puts an empty Enchantments tag on the itemstack (replacing all enchantments)
+ */
 fun ItemStack.withGlint(doGlint: Boolean = true): ItemStack {
     if (doGlint) {
         this.orCreateTag.put("Enchantments", ListTag().apply {
@@ -33,6 +41,9 @@ fun ItemStack.withGlint(doGlint: Boolean = true): ItemStack {
     return this
 }
 
+/**
+ * Applies the skull data to the ItemStack
+ */
 fun ItemStack.applySkull(data: String, uuid: List<Int>): ItemStack {
     orCreateTag.put("SkullOwner", CompoundTag().apply {
         put("Id", IntArrayTag(uuid))
@@ -47,6 +58,9 @@ fun ItemStack.applySkull(data: String, uuid: List<Int>): ItemStack {
     return this
 }
 
+/**
+ * applySkull but hardcoded to the hashtag
+ */
 fun ItemStack.asHashtag(): ItemStack {
     this.applySkull("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQ0YzRkZjdlMTdkYjNjN2U5OTZjYzY3YjE3ZThmOGE5N2Q2MmM4MWZlMzJmODUyZTFhNDc3OWE5ZmM1ODhiOCJ9fX0=", listOf(-1704412717,-1610265263,-1967963385,273102471))
     return this

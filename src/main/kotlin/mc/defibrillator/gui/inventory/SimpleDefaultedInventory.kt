@@ -9,6 +9,9 @@ package mc.defibrillator.gui.inventory
 import net.minecraft.inventory.SimpleInventory
 import net.minecraft.item.ItemStack
 
+/**
+ * A simple inventory that fills all slots with the provided ItemStack
+ */
 class SimpleDefaultedInventory(size: Int, default: ItemStack): SimpleInventory(size) {
     init {
         for (slot in 0 until size) {

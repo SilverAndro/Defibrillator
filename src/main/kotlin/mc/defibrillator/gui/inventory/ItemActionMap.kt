@@ -12,6 +12,9 @@ import mc.defibrillator.util.classes.DualHashMap
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
 
+/**
+ * A simple wrapper that indexes `GuiAction`s and ItemStacks into slot numbers + some utility functions
+ */
 class ItemActionMap(method: ItemActionMap.()->Unit) {
     private val backingMap: DualHashMap<Int, GuiAction, ItemStack> = DualHashMap()
 

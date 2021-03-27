@@ -26,7 +26,7 @@ public class PreventPlayerJoin {
         cancellable = true
     )
     public void preventPlayersFromJoiningWhileDataEdited(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Text> cir) {
-        if (DefibState.INSTANCE.getActiveSessions().contains(profile.getId())) {
+        if (DefibState.activeSessions.contains(profile.getId())) {
             cir.setReturnValue(new LiteralText("You player data is being edited! Try again later."));
         }
     }

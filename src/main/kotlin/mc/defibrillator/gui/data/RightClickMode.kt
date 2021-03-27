@@ -6,6 +6,9 @@
 
 package mc.defibrillator.gui.data
 
+/**
+ * An enum representing what right click should do
+ */
 enum class RightClickMode {
     PASS,
     DELETE,

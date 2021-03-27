@@ -8,6 +8,9 @@ package mc.defibrillator.util.classes
 
 import kotlin.reflect.KProperty
 
+/**
+ * An Int property that recalculates the limits of what it can be set to every time the value is attempted to be set
+ */
 class DynamicLimitedIntProp(private val minMaker: () -> Int, private val maxMaker: () -> Int) {
     private var backing = 0
 

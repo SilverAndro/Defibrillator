@@ -31,12 +31,23 @@ import kotlin.time.toDuration
 
 typealias GuiAction = (Int, GuiStateComposite) -> Unit
 
+/**
+ * Opens a NBT editing/viewing gui
+ *
+ * @param player The player that will have the screen opened
+ * @param title Title of the screen
+ * @param state A MenuState that will be passed around
+ * @param onClose A method that will be called when the screen is closed (if not suppressed)
+ */
 fun openNBTGui(player: ServerPlayerEntity, title: String, state: MenuState, onClose: (MenuState) -> Unit): MenuState {
     val factory = NBTScreenHandlerFactory(title, state, onClose)
     player.openHandledScreen(factory)
     return state
 }
 
+/**
+ * Prompts the player for a text entry in chat with a 30s timeout
+ */
 @ExperimentalTime
 fun getTextEntry(composite: GuiStateComposite, forMessage: String, onComplete: (String?) -> Unit) {
     composite.state.suppressOnClose.set(true)
@@ -76,6 +87,9 @@ fun getTextEntry(composite: GuiStateComposite, forMessage: String, onComplete: (
     }
 }
 
+/**
+ * Converts an ItemConvertible into an ItemStack with a custom name and a tag that makes it get cleaned up from creative
+ */
 fun ItemConvertible.guiStack(name: String = "", nameColor: Formatting = Formatting.WHITE): ItemStack {
     return ItemStack(this)
         .setCustomName(
@@ -89,6 +103,9 @@ fun ItemConvertible.guiStack(name: String = "", nameColor: Formatting = Formatti
         .apply { orCreateTag.putBoolean("defib-DELETE", true) }
 }
 
+/**
+ * Generates an ItemStack and GuiAction for the tag with the given name
+ */
 @ExperimentalTime
 fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction> {
     return when (this) {
@@ -144,12 +161,15 @@ fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction> {
     }
 }
 
+/**
+ * Executes the mode action if right click, executes the default action and refreshes
+ */
 @ExperimentalTime
 fun modeOrDo(data: Int, name: String, composite: GuiStateComposite, action: GuiAction) {
     if (data == 1) {
         when (composite.state.clickMode) {
             RightClickMode.PASS -> action(data, composite)
-            RightClickMode.DELETE -> deleteFromTag(composite, name)
+            RightClickMode.DELETE -> composite.state.getActiveTag().delete(name)
             RightClickMode.COPY -> copy(composite, name)
         }
     } else {
@@ -158,12 +178,15 @@ fun modeOrDo(data: Int, name: String, composite: GuiStateComposite, action: GuiA
     composite.state.factory?.makeAndUpdateNBTViewer(composite.defaultedInventory, composite.state)
 }
 
+/**
+ * Executes the mode action if right click, otherwise adds the tag to the keyStack and refreshes
+ */
 @ExperimentalTime
 fun modeOrOpen(data: Int, name: String, composite: GuiStateComposite) {
     if (data == 1) {
         when (composite.state.clickMode) {
             RightClickMode.PASS -> composite.state.keyStack.add(name)
-            RightClickMode.DELETE -> deleteFromTag(composite, name)
+            RightClickMode.DELETE -> composite.state.getActiveTag().delete(name)
             RightClickMode.COPY -> copy(composite, name)
         }
     } else {
@@ -172,10 +195,9 @@ fun modeOrOpen(data: Int, name: String, composite: GuiStateComposite) {
     composite.state.factory?.makeAndUpdateNBTViewer(composite.defaultedInventory, composite.state)
 }
 
-private fun deleteFromTag(composite: GuiStateComposite, name: String) {
-    composite.state.getActiveTag().delete(name)
-}
-
+/**
+ * Sends a message to the player with text that can be clicked to copy the string representation of the tag
+ */
 private fun copy(composite: GuiStateComposite, name: String) {
     val tag = composite.state.getActiveTag().retrieve(name)
     composite.player.sendMessage(

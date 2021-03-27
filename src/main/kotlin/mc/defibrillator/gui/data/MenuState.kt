@@ -15,6 +15,9 @@ import net.minecraft.nbt.Tag
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * The state of the gui, should be passed around instead of copied or duplicated
+ */
 class MenuState(var rootTag: CompoundTag, val playerUUID: UUID) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()

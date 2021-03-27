@@ -10,6 +10,11 @@ import mc.defibrillator.gui.inventory.SimpleDefaultedInventory
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.server.network.ServerPlayerEntity
 
+/**
+ * A class that holds some useful data for reference
+ *
+ * Prefer passing this around instead of MenuState when possible, due to the increased context
+ */
 class GuiStateComposite(val state: MenuState, playerInv: PlayerInventory, val defaultedInventory: SimpleDefaultedInventory) {
     val player = playerInv.player as ServerPlayerEntity
 }

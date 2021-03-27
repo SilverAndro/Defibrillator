@@ -23,6 +23,15 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.collection.DefaultedList
 
+/**
+ * A custom screen handler for NBT screens
+ *
+ * Suppresses any and all actions unless its clicking or right clicking, in which case it instead passes the info along
+ *
+ * Unfortunately shift clicking de-syncs client side, but that will be fixed when they click in the wrong place or close
+ *
+ * Unless they are in creative, in which case we need to track the tags and delete those
+ */
 class NBTScreenHandler(
     syncId: Int,
     private val playerInventory: PlayerInventory,

@@ -18,6 +18,7 @@ object DefibState {
     @JvmField
     val readInput: HashMap<ServerPlayerEntity, MutableList<String>> = hashMapOf()
 
+    @JvmField
     val activeSessions: DualHashMap<UUID, ServerPlayerEntity, MenuState> = DualHashMap()
 
     @JvmStatic

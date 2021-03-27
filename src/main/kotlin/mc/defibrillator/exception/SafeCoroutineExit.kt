@@ -8,4 +8,7 @@ package mc.defibrillator.exception
 
 import java.util.concurrent.CancellationException
 
+/**
+ * Represents a safe exit form a coroutine
+ */
 class SafeCoroutineExit : CancellationException()

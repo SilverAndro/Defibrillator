@@ -28,6 +28,7 @@ import java.net.Proxy;
 @Mixin(MinecraftServer.class)
 public class ServerInstanceGrabber {
     @Inject(method = "<init>", at = @At("TAIL"))
+    // Grabs the server instance on start
     private void extractUserCacheOnSetupForDefib(Thread thread, DynamicRegistryManager.Impl impl, LevelStorage.Session session, SaveProperties saveProperties, ResourcePackManager resourcePackManager, Proxy proxy, DataFixer dataFixer, ServerResourceManager serverResourceManager, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, UserCache userCache, WorldGenerationProgressListenerFactory worldGenerationProgressListenerFactory, CallbackInfo ci) {
         DefibState.serverInstance = ((MinecraftServer)(Object)this);
     }

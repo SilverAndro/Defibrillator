@@ -24,6 +24,7 @@ public class ChatEntryGrabber {
         cancellable = true,
         locals = LocalCapture.CAPTURE_FAILHARD
     )
+    // Grabs the message sent by players that we are awaiting input from, and cancels further processing
     public void captureChatMessage(ChatMessageC2SPacket packet, CallbackInfo ci, String string) {
         ServerPlayerEntity player = ((ServerPlayNetworkHandler)(Object)this).player;
         if (DefibState.awaitingInput.containsKey(player)) {

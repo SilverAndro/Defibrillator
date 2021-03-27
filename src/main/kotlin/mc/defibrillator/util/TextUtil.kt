@@ -9,6 +9,12 @@ package mc.defibrillator.util
 import net.minecraft.text.*
 import net.minecraft.util.Formatting
 
+/**
+ * Returns a new LiteralText that can be clicked to copy `text`
+ *
+ * @param text The text to be copied
+ * @param display What the text should display as
+ */
 fun copyableText(text: String, display: String = text): MutableText {
     return LiteralText(display).setStyle(
         Style.EMPTY

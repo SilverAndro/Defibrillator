@@ -24,6 +24,9 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.WorldSavePath
 import java.util.concurrent.CompletableFuture
 
+/**
+ * Suggests player names from the OfflineNameCache
+ */
 class OfflinePlayerSuggester : SuggestionProvider<ServerCommandSource> {
     override fun getSuggestions(
         context: CommandContext<ServerCommandSource>,
