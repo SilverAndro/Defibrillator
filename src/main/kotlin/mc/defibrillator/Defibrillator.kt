@@ -156,6 +156,12 @@ class Defibrillator : ModInitializer {
                                         entity.fromTag(world.getBlockState(pos), state.rootTag)
                                         it.source.sendFeedback(LiteralText("Saved block data"), false)
                                     }
+                                } else {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "No block entity at $pos"
+                                        ).formatted(Formatting.RED)
+                                    )
                                 }
                             }
                         }
