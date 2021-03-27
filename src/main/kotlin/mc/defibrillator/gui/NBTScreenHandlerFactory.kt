@@ -30,7 +30,7 @@ import net.minecraft.util.Util
 import kotlin.time.ExperimentalTime
 
 class NBTScreenHandlerFactory(
-    private val title: String,
+    private val title: Text,
     private val state: MenuState,
     private val onClose: (MenuState) -> Unit
 ) : NamedScreenHandlerFactory {
@@ -46,7 +46,7 @@ class NBTScreenHandlerFactory(
     }
 
     override fun getDisplayName(): Text {
-        return LiteralText(title)
+        return title
     }
 
     @ExperimentalTime

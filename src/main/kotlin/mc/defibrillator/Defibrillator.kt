@@ -18,10 +18,12 @@ import me.basiqueevangelist.nevseti.OfflineNameCache
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
+import net.minecraft.command.argument.BlockPosArgumentType
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.LiteralText
+import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Util
@@ -73,7 +75,7 @@ class Defibrillator : ModInitializer {
                                     if (!DefibState.activeSessions.contains(uuid)) {
                                         val state = openNBTGui(
                                             it.source.player,
-                                            it.getArgument("playerData", String::class.java),
+                                            LiteralText(it.getArgument("playerData", String::class.java)),
                                             MenuState(
                                                 OfflineDataCache.INSTANCE.get(uuid).copy(),
                                                 uuid
@@ -120,7 +122,7 @@ class Defibrillator : ModInitializer {
                         executes {
                             openNBTGui(
                                 it.source.player,
-                                "Held Item",
+                                LiteralText("Held Item"),
                                 MenuState(
                                     it.source.player.mainHandStack.toTag(CompoundTag()),
                                     Util.NIL_UUID
@@ -131,6 +133,30 @@ class Defibrillator : ModInitializer {
                                     ItemStack.fromTag(state.rootTag)
                                 )
                                 it.source.sendFeedback(LiteralText("Saved item data"), false)
+                            }
+                        }
+                    }
+                    literal("block") {
+                        blockPos("blockPos") {
+                            executes(debug = true) {
+                                val pos = BlockPosArgumentType.getBlockPos(it, "blockPos")
+                                val world = it.source.world
+                                val entity = world.getBlockEntity(pos)
+                                if (entity != null) {
+                                    val tag = entity.toTag(CompoundTag())
+                                    openNBTGui(
+                                        it.source.player,
+                                        TranslatableText(world.getBlockState(pos).block.translationKey)
+                                            .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
+                                        MenuState(
+                                            tag,
+                                            Util.NIL_UUID
+                                        )
+                                    ) { state ->
+                                        entity.fromTag(world.getBlockState(pos), state.rootTag)
+                                        it.source.sendFeedback(LiteralText("Saved block data"), false)
+                                    }
+                                }
                             }
                         }
                     }

@@ -24,6 +24,7 @@ import net.minecraft.nbt.*
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Style
+import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
@@ -39,7 +40,7 @@ typealias GuiAction = (Int, GuiStateComposite) -> Unit
  * @param state A MenuState that will be passed around
  * @param onClose A method that will be called when the screen is closed (if not suppressed)
  */
-fun openNBTGui(player: ServerPlayerEntity, title: String, state: MenuState, onClose: (MenuState) -> Unit): MenuState {
+fun openNBTGui(player: ServerPlayerEntity, title: Text, state: MenuState, onClose: (MenuState) -> Unit): MenuState {
     val factory = NBTScreenHandlerFactory(title, state, onClose)
     player.openHandledScreen(factory)
     return state
