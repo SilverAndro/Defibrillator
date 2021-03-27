@@ -64,7 +64,7 @@ class Defibrillator : ModInitializer {
                     it.hasPermissionLevel(2)
                 }
                 literal("modify") {
-                    literal("playerdata") {
+                    literal("player") {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
                             executes(debug = true) {
