@@ -64,6 +64,54 @@ class Defibrillator : ModInitializer {
                     it.hasPermissionLevel(2)
                 }
                 literal("modify") {
+                    literal("item") {
+                        executes {
+                            openNBTGui(
+                                it.source.player,
+                                LiteralText("Held Item"),
+                                MenuState(
+                                    it.source.player.mainHandStack.toTag(CompoundTag()),
+                                    Util.NIL_UUID
+                                )
+                            ) { state ->
+                                it.source.player.setStackInHand(
+                                    Hand.MAIN_HAND,
+                                    ItemStack.fromTag(state.rootTag)
+                                )
+                                it.source.sendFeedback(LiteralText("Saved item data"), false)
+                            }
+                        }
+                    }
+                    literal("block") {
+                        blockPos("blockPos") {
+                            executes(debug = true) {
+                                val pos = BlockPosArgumentType.getBlockPos(it, "blockPos")
+                                val world = it.source.world
+                                val entity = world.getBlockEntity(pos)
+                                if (entity != null) {
+                                    val tag = entity.toTag(CompoundTag())
+                                    openNBTGui(
+                                        it.source.player,
+                                        TranslatableText(world.getBlockState(pos).block.translationKey)
+                                            .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
+                                        MenuState(
+                                            tag,
+                                            Util.NIL_UUID
+                                        )
+                                    ) { state ->
+                                        entity.fromTag(world.getBlockState(pos), state.rootTag)
+                                        it.source.sendFeedback(LiteralText("Saved block data"), false)
+                                    }
+                                } else {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "No block entity at $pos"
+                                        ).formatted(Formatting.RED)
+                                    )
+                                }
+                            }
+                        }
+                    }
                     literal("player") {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
@@ -112,54 +160,6 @@ class Defibrillator : ModInitializer {
                                     it.source.sendError(
                                         LiteralText(
                                             "Could not load data for that user!"
-                                        ).formatted(Formatting.RED)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    literal("item") {
-                        executes {
-                            openNBTGui(
-                                it.source.player,
-                                LiteralText("Held Item"),
-                                MenuState(
-                                    it.source.player.mainHandStack.toTag(CompoundTag()),
-                                    Util.NIL_UUID
-                                )
-                            ) { state ->
-                                it.source.player.setStackInHand(
-                                    Hand.MAIN_HAND,
-                                    ItemStack.fromTag(state.rootTag)
-                                )
-                                it.source.sendFeedback(LiteralText("Saved item data"), false)
-                            }
-                        }
-                    }
-                    literal("block") {
-                        blockPos("blockPos") {
-                            executes(debug = true) {
-                                val pos = BlockPosArgumentType.getBlockPos(it, "blockPos")
-                                val world = it.source.world
-                                val entity = world.getBlockEntity(pos)
-                                if (entity != null) {
-                                    val tag = entity.toTag(CompoundTag())
-                                    openNBTGui(
-                                        it.source.player,
-                                        TranslatableText(world.getBlockState(pos).block.translationKey)
-                                            .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
-                                        MenuState(
-                                            tag,
-                                            Util.NIL_UUID
-                                        )
-                                    ) { state ->
-                                        entity.fromTag(world.getBlockState(pos), state.rootTag)
-                                        it.source.sendFeedback(LiteralText("Saved block data"), false)
-                                    }
-                                } else {
-                                    it.source.sendError(
-                                        LiteralText(
-                                            "No block entity at $pos"
                                         ).formatted(Formatting.RED)
                                     )
                                 }
