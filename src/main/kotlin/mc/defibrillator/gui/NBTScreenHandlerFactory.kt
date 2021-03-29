@@ -32,6 +32,7 @@ import kotlin.time.ExperimentalTime
 class NBTScreenHandlerFactory(
     private val title: Text,
     private val state: MenuState,
+    private val allowEditing: Boolean,
     private val onClose: (MenuState) -> Unit
 ) : NamedScreenHandlerFactory {
     init {
@@ -114,8 +115,13 @@ class NBTScreenHandlerFactory(
             }
 
             // Add entry
-            addEntry(6, Items.PLAYER_HEAD.guiStack("Add Tag/Entry").applySkull(PLUS_TEXTURE, PLUS_ID)) { _, composite ->
-                makeAndUpdateNBTTagAdder(defaultedInventory, composite.state)
+            if (allowEditing) {
+                addEntry(
+                    6,
+                    Items.PLAYER_HEAD.guiStack("Add Tag/Entry").applySkull(PLUS_TEXTURE, PLUS_ID)
+                ) { _, composite ->
+                    makeAndUpdateNBTTagAdder(defaultedInventory, composite.state)
+                }
             }
 
             // Next page if more pages to go to

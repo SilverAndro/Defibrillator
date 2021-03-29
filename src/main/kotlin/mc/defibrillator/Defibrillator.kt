@@ -63,6 +63,83 @@ class Defibrillator : ModInitializer {
                 requires {
                     it.hasPermissionLevel(2)
                 }
+                literal("view") {
+                    literal("item") {
+                        executes {
+                            openNBTGui(
+                                it.source.player,
+                                LiteralText("Held Item (VIEW)"),
+                                MenuState(
+                                    it.source.player.mainHandStack.toTag(CompoundTag()),
+                                    Util.NIL_UUID
+                                ),
+                                false
+                            ) { }
+                        }
+                    }
+                    literal("block") {
+                        blockPos("blockPos") {
+                            executes(debug = true) {
+                                val pos = BlockPosArgumentType.getBlockPos(it, "blockPos")
+                                val world = it.source.world
+                                val entity = world.getBlockEntity(pos)
+                                if (entity != null) {
+                                    val tag = entity.toTag(CompoundTag())
+                                    openNBTGui(
+                                        it.source.player,
+                                        TranslatableText(world.getBlockState(pos).block.translationKey)
+                                            .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}] (VIEW)")),
+                                        MenuState(
+                                            tag,
+                                            Util.NIL_UUID
+                                        ),
+                                        false
+                                    ) { }
+                                } else {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "No block entity at $pos"
+                                        ).formatted(Formatting.RED)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    literal("player") {
+                        string("playerData") {
+                            suggests(OfflinePlayerSuggester()::getSuggestions)
+                            executes(debug = true) {
+                                try {
+                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                                        it.getArgument("playerData", String::class.java)
+                                    )
+                                    val state = openNBTGui(
+                                        it.source.player,
+                                        LiteralText(it.getArgument("playerData", String::class.java))
+                                            .append(LiteralText(" (VIEW)")),
+                                        MenuState(
+                                            OfflineDataCache.INSTANCE.get(uuid).copy(),
+                                            uuid
+                                        ),
+                                        false
+                                    ) { }
+
+                                    DefibState.activeSessions.set(
+                                        uuid,
+                                        it.source.player,
+                                        state
+                                    )
+                                } catch (npe: NullPointerException) {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "Could not load data for that user!"
+                                        ).formatted(Formatting.RED)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
                 literal("modify") {
                     literal("item") {
                         executes {

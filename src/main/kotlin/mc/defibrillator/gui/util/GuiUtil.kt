@@ -40,8 +40,8 @@ typealias GuiAction = (Int, GuiStateComposite) -> Unit
  * @param state A MenuState that will be passed around
  * @param onClose A method that will be called when the screen is closed (if not suppressed)
  */
-fun openNBTGui(player: ServerPlayerEntity, title: Text, state: MenuState, onClose: (MenuState) -> Unit): MenuState {
-    val factory = NBTScreenHandlerFactory(title, state, onClose)
+fun openNBTGui(player: ServerPlayerEntity, title: Text, state: MenuState, allowEditing: Boolean = true, onClose: (MenuState) -> Unit): MenuState {
+    val factory = NBTScreenHandlerFactory(title, state, allowEditing, onClose)
     player.openHandledScreen(factory)
     return state
 }
