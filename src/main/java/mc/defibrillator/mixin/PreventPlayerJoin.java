@@ -8,6 +8,7 @@ package mc.defibrillator.mixin;
 
 import com.mojang.authlib.GameProfile;
 import mc.defibrillator.DefibState;
+import mc.defibrillator.Defibrillator;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -27,7 +28,14 @@ public class PreventPlayerJoin {
     )
     public void preventPlayersFromJoiningWhileDataEdited(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Text> cir) {
         if (DefibState.activeSessions.contains(profile.getId())) {
-            cir.setReturnValue(new LiteralText("You player data is being edited! Try again later."));
+            cir.setReturnValue(
+                new LiteralText(
+                    Defibrillator
+                        .getConfig()
+                        .failedConnectMessage
+                        .replace("%editor%", DefibState.activeSessions.get(profile.getId()).component1().getEntityName())
+                )
+            );
         }
     }
 }

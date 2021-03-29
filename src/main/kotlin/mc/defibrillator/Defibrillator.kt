@@ -113,7 +113,7 @@ class Defibrillator : ModInitializer {
                                     val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
                                         it.getArgument("playerData", String::class.java)
                                     )
-                                    val state = openNBTGui(
+                                    openNBTGui(
                                         it.source.player,
                                         LiteralText(it.getArgument("playerData", String::class.java))
                                             .append(LiteralText(" (VIEW)")),
@@ -123,12 +123,6 @@ class Defibrillator : ModInitializer {
                                         ),
                                         false
                                     ) { }
-
-                                    DefibState.activeSessions.set(
-                                        uuid,
-                                        it.source.player,
-                                        state
-                                    )
                                 } catch (npe: NullPointerException) {
                                     it.source.sendError(
                                         LiteralText(
@@ -249,6 +243,7 @@ class Defibrillator : ModInitializer {
     }
 
     companion object {
+        @JvmStatic
         val config: DefibrillatorConfig = MicroConfig.getOrCreate("defib", DefibrillatorConfig())
     }
 }
