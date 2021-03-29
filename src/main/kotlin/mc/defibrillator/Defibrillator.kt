@@ -258,7 +258,9 @@ class Defibrillator : ModInitializer {
                             }
                         }
                         literal("clearAll") {
-                            DefibState.activeSessions.clear()
+                            executes {
+                                DefibState.activeSessions.clear()
+                            }
                         }
                         literal("list") {
                             executes {
