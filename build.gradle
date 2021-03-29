@@ -35,8 +35,8 @@ dependencies {
     include 'com.github.P03W:Aegis:2.0.3'
 
     // Microconfig
-    modImplementation 'com.github.P03W:Microconfig:2.0.0'
-    include 'com.github.P03W:Microconfig:2.0.0'
+    modImplementation 'com.github.P03W:Microconfig:2.0.1'
+    include 'com.github.P03W:Microconfig:2.0.1'
 
     // Ne-V-Seti
     modImplementation 'com.github.BasiqueEvangelist:ne-v-seti:0.1.3'
