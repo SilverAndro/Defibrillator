@@ -13,6 +13,10 @@ class DualHashMap<KEY, TYPE_A, TYPE_B> {
     private val backingA: HashMap<KEY, TYPE_A> = hashMapOf()
     private val backingB: HashMap<KEY, TYPE_B> = hashMapOf()
 
+    fun isEmpty(): Boolean {
+        return backingA.isEmpty()
+    }
+
     fun set(key: KEY, value1: TYPE_A, value2: TYPE_B) {
         backingA[key] = value1
         backingB[key] = value2
@@ -25,6 +29,11 @@ class DualHashMap<KEY, TYPE_A, TYPE_B> {
 
     fun contains(key: KEY): Boolean {
         return backingA.containsKey(key)
+    }
+
+    fun clear() {
+        backingA.clear()
+        backingB.clear()
     }
 
     fun getA(key: KEY): TYPE_A = backingA[key]!!

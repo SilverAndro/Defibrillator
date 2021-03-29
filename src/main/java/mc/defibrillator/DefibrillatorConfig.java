@@ -13,6 +13,6 @@ public class DefibrillatorConfig implements ConfigData {
     @Comment("If the \"Number\" option should be shown instead of the specific tag options")
     public boolean collapseNumberOptions = true;
     
-    @Comment("Message show to users who try to join while their data is being edited, use %editor% for the player name of the editor")
+    @Comment("Message shown to users who try to join while their data is being edited, use %editor% for the player name of the editor")
     public String failedConnectMessage = "Your player data is being edited! Try again later.";
 }

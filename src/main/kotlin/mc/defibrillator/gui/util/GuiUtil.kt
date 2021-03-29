@@ -8,6 +8,7 @@ package mc.defibrillator.gui.util
 
 import kotlinx.coroutines.*
 import mc.defibrillator.DefibState
+import mc.defibrillator.Defibrillator
 import mc.defibrillator.exception.SafeCoroutineExit
 import mc.defibrillator.gui.NBTScreenHandlerFactory
 import mc.defibrillator.gui.data.GuiStateComposite
@@ -55,14 +56,14 @@ fun getTextEntry(composite: GuiStateComposite, forMessage: String, onComplete: (
 
     val player = composite.player
 
-    GlobalScope.launch {
+    GlobalScope.launch(Defibrillator.crashHandler) {
         try {
             player.closeHandledScreen()
             player.sendMessage(LiteralText("Type in chat for $forMessage"), false)
 
             val topRoutine = this
 
-            launch {
+            launch(Defibrillator.crashHandler) {
                 delay(30.toDuration(DurationUnit.SECONDS))
                 player.sendMessage(LiteralText("Timed out!").formatted(Formatting.RED), false)
                 DefibState.awaitingInput.remove(player)
