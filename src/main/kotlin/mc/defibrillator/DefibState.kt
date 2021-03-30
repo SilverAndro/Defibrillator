@@ -15,6 +15,7 @@ import java.util.*
 object DefibState {
     @JvmField
     val awaitingInput: HashMap<ServerPlayerEntity, (String) -> Unit> = hashMapOf()
+
     @JvmField
     val readInput: HashMap<ServerPlayerEntity, MutableList<String>> = hashMapOf()
 

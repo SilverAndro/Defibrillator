@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 /**
  * A simple inventory that fills all slots with the provided ItemStack
  */
-class SimpleDefaultedInventory(size: Int, default: ItemStack): SimpleInventory(size) {
+class SimpleDefaultedInventory(size: Int, default: ItemStack) : SimpleInventory(size) {
     init {
         for (slot in 0 until size) {
             setStack(slot, default)

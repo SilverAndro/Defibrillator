@@ -62,6 +62,9 @@ fun ItemStack.applySkull(data: String, uuid: List<Int>): ItemStack {
  * applySkull but hardcoded to the hashtag
  */
 fun ItemStack.asHashtag(): ItemStack {
-    this.applySkull("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQ0YzRkZjdlMTdkYjNjN2U5OTZjYzY3YjE3ZThmOGE5N2Q2MmM4MWZlMzJmODUyZTFhNDc3OWE5ZmM1ODhiOCJ9fX0=", listOf(-1704412717,-1610265263,-1967963385,273102471))
+    this.applySkull(
+        "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQ0YzRkZjdlMTdkYjNjN2U5OTZjYzY3YjE3ZThmOGE5N2Q2MmM4MWZlMzJmODUyZTFhNDc3OWE5ZmM1ODhiOCJ9fX0=",
+        listOf(-1704412717, -1610265263, -1967963385, 273102471)
+    )
     return this
 }

@@ -15,7 +15,7 @@ import net.minecraft.item.ItemStack
 /**
  * A simple wrapper that indexes `GuiAction`s and ItemStacks into slot numbers + some utility functions
  */
-class ItemActionMap(method: ItemActionMap.()->Unit) {
+class ItemActionMap(method: ItemActionMap.() -> Unit) {
     private val backingMap: DualHashMap<Int, GuiAction, ItemStack> = DualHashMap()
 
     init {

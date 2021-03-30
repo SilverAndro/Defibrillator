@@ -15,6 +15,10 @@ import net.minecraft.server.network.ServerPlayerEntity
  *
  * Prefer passing this around instead of MenuState when possible, due to the increased context
  */
-class GuiStateComposite(val state: MenuState, playerInv: PlayerInventory, val defaultedInventory: SimpleDefaultedInventory) {
+class GuiStateComposite(
+    val state: MenuState,
+    playerInv: PlayerInventory,
+    val defaultedInventory: SimpleDefaultedInventory
+) {
     val player = playerInv.player as ServerPlayerEntity
 }

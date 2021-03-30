@@ -76,7 +76,10 @@ class NBTScreenHandlerFactory(
                     composite.state.clickMode = RightClickMode.DELETE
                     makeAndUpdateNBTViewer(defaultedInventory, composite.state)
                 }
-                RightClickMode.DELETE -> addEntry(2, Items.TNT.guiStack("Right Click: Delete", Formatting.RED).withGlint()) { _, composite ->
+                RightClickMode.DELETE -> addEntry(
+                    2,
+                    Items.TNT.guiStack("Right Click: Delete", Formatting.RED).withGlint()
+                ) { _, composite ->
                     composite.state.clickMode = RightClickMode.PASS
                     makeAndUpdateNBTViewer(defaultedInventory, composite.state)
                 }
