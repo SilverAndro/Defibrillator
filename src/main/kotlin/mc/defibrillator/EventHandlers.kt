@@ -243,16 +243,17 @@ object EventHandlers {
         literal("debug") {
             literal("sessions") {
                 literal("clear") {
-                    custom("uuid", UuidArgumentType()) {
+                    uuid("uuid") {
                         executes {
                             DefibState.activeSessions.remove(UuidArgumentType.getUuid(it, "uuid"))
-                            it.source.sendFeedback(LiteralText("Removed session (if present)"), false)
+                            it.source.sendFeedback(LiteralText("Removed session (if present)"), true)
                         }
                     }
                 }
                 literal("clearAll") {
                     executes {
                         DefibState.activeSessions.clear()
+                        it.source.sendFeedback(LiteralText("Removed all sessions (if present)"), true)
                     }
                 }
                 literal("list") {
