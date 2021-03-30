@@ -60,7 +60,9 @@ object EventHandlers {
             requires {
                 it.hasPermissionLevel(2)
             }
-            attachDebugTree()
+            if (Defibrillator.config.enableDebugCommands) {
+                attachDebugTree()
+            }
             literal("view") {
                 literal("item") {
                     executes {

@@ -15,4 +15,7 @@ public class DefibrillatorConfig implements ConfigData {
     
     @Comment("Message shown to users who try to join while their data is being edited, use %editor% for the player name of the editor")
     public String failedConnectMessage = "Your player data is being edited! Try again later.";
+    
+    @Comment("If the debug subset of commands is enabled")
+    public boolean enableDebugCommands = true;
 }
