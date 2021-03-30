@@ -21,6 +21,7 @@ import net.minecraft.command.argument.UuidArgumentType
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.text.MutableText
@@ -257,9 +258,9 @@ object EventHandlers {
                     if (DefibState.awaitingInput.isEmpty()) {
                         it.source.sendFeedback(LiteralText("Not awaiting any input"), false)
                     } else {
-                        DefibState.activeSessions.forEach { _, playerEntity, _ ->
+                        DefibState.awaitingInput.forEach { entry ->
                             it.source.sendFeedback(
-                                (playerEntity.displayName as MutableText),
+                                (entry.key.displayName as MutableText),
                                 false
                             )
                         }
