@@ -27,7 +27,7 @@ public class ChatEntryGrabber {
     // Grabs the message sent by players that we are awaiting input from, and cancels further processing
     public void captureChatMessage(ChatMessageC2SPacket packet, CallbackInfo ci, String string) {
         ServerPlayerEntity player = ((ServerPlayNetworkHandler)(Object)this).player;
-        if (DefibState.awaitingInput.containsKey(player)) {
+        if (DefibState.awaitingInput.containsKey(player) && !string.startsWith("/")) {
             DefibState.awaitingInput.get(player).invoke(string);
             DefibState.awaitingInput.remove(player);
             ci.cancel();
