@@ -58,12 +58,15 @@ object EventHandlers {
     fun registerMainCommand(dispatcher: CommandDispatcher<ServerCommandSource>) {
         dispatcher.register(aegisCommand("defib") {
             requires {
-                it.hasPermissionLevel(2)
+                it.hasPermissionLevel(Defibrillator.config.commands.minimumRequiredLevel)
             }
-            if (Defibrillator.config.enableDebugCommands) {
+            if (Defibrillator.config.commands.enableDebugCommands) {
                 attachDebugTree()
             }
             literal("view") {
+                requires {
+                    it.hasPermissionLevel(Defibrillator.config.commands.viewRequiredLevel)
+                }
                 literal("item") {
                     executes {
                         openNBTGui(
@@ -135,6 +138,9 @@ object EventHandlers {
                 }
             }
             literal("modify") {
+                requires {
+                    it.hasPermissionLevel(Defibrillator.config.commands.viewRequiredLevel)
+                }
                 literal("item") {
                     executes {
                         openNBTGui(
@@ -243,6 +249,23 @@ object EventHandlers {
 
     private fun AegisCommandBuilder.attachDebugTree() {
         literal("debug") {
+            requires {
+                it.hasPermissionLevel(2)
+            }
+            literal("input") {
+                executes {
+                    if (DefibState.awaitingInput.isEmpty()) {
+                        it.source.sendFeedback(LiteralText("Not awaiting any input"), false)
+                    } else {
+                        DefibState.activeSessions.forEach { _, playerEntity, _ ->
+                            it.source.sendFeedback(
+                                (playerEntity.displayName as MutableText),
+                                false
+                            )
+                        }
+                    }
+                }
+            }
             literal("sessions") {
                 literal("clear") {
                     uuid("uuid") {

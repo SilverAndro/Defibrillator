@@ -16,6 +16,19 @@ public class DefibrillatorConfig implements ConfigData {
     @Comment("Message shown to users who try to join while their data is being edited, use %editor% for the player name of the editor")
     public String failedConnectMessage = "Your player data is being edited! Try again later.";
     
-    @Comment("If the debug subset of commands is enabled")
-    public boolean enableDebugCommands = true;
+    public CommandConfigs commands = new CommandConfigs();
+    
+    public static class CommandConfigs implements ConfigData {
+        @Comment("Permission level required to access /defib")
+        public int minimumRequiredLevel = 2;
+        
+        @Comment("Permission level required to view data")
+        public int viewRequiredLevel = 2;
+    
+        @Comment("Permission level required to edit data")
+        public int editRequiredLevel = 2;
+        
+        @Comment("If the debug subset of commands is enabled")
+        public boolean enableDebugCommands = true;
+    }
 }
