@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "ChatEntryGrabber",
-    "PreventPlayerJoin",
-    "ServerInstanceGrabber"
+    "PreventPlayerJoin"
   ],
   "injectors": {
     "defaultRequire": 1

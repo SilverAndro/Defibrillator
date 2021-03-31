@@ -20,6 +20,7 @@ import net.minecraft.command.argument.BlockPosArgumentType
 import net.minecraft.command.argument.UuidArgumentType
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
@@ -33,6 +34,10 @@ import java.util.*
 import kotlin.time.ExperimentalTime
 
 object EventHandlers {
+    fun onServerStarted(server: MinecraftServer) {
+        DefibState.serverInstance = server
+    }
+
     fun onWorldEndTick(world: ServerWorld) {
         world.players.forEach {
             it.inventory.remove(

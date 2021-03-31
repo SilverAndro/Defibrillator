@@ -19,6 +19,7 @@ import me.basiqueevangelist.nevseti.OfflineDataChanged
 import me.basiqueevangelist.nevseti.OfflineNameCache
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.command.argument.BlockPosArgumentType
 import net.minecraft.command.argument.UuidArgumentType
@@ -41,6 +42,9 @@ class Defibrillator : ModInitializer {
         println("DEFIBRILLATOR IS IN BETA")
         println("PLEASE REPORT ANY AND ALL ERRORS")
         println("----")
+
+        // Grab the server on start
+        ServerLifecycleEvents.SERVER_STARTED.register(EventHandlers::onServerStarted)
 
         // Remove GUI items from players
         ServerTickEvents.END_WORLD_TICK.register(EventHandlers::onWorldEndTick)
