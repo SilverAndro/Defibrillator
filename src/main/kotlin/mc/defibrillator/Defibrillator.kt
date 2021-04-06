@@ -21,11 +21,6 @@ class Defibrillator : ModInitializer {
     @ExperimentalTime
     @ExperimentalStdlibApi
     override fun onInitialize() {
-        println("----")
-        println("DEFIBRILLATOR IS IN BETA")
-        println("PLEASE REPORT ANY AND ALL ERRORS")
-        println("----")
-
         // Grab the server on start
         ServerLifecycleEvents.SERVER_STARTED.register(EventHandlers::onServerStarted)
 
@@ -49,7 +44,9 @@ class Defibrillator : ModInitializer {
             println("DEFIBRILLATOR ASYNC EXCEPTION")
             println("CONTEXT: $context")
             println("EXCEPTION MESSAGE: ${exception.message}")
-            throw exception
+            if (config.rethrowAsyncErrors) {
+                throw exception
+            }
         }
     }
 }
