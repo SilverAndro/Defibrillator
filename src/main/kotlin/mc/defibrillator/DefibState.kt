@@ -7,9 +7,9 @@
 package mc.defibrillator
 
 import mc.defibrillator.gui.data.MenuState
-import mc.defibrillator.util.classes.DualHashMap
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
+import org.github.p03w.quecee.util.DualHashMap
 import java.util.*
 
 object DefibState {

@@ -6,25 +6,24 @@
 
 package mc.defibrillator.gui.data
 
-import mc.defibrillator.gui.NBTScreenHandler
 import mc.defibrillator.gui.NBTScreenHandlerFactory
 import mc.defibrillator.util.classes.DynamicLimitedIntProp
 import net.minecraft.nbt.AbstractListTag
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
+import net.minecraft.server.network.ServerPlayerEntity
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The state of the gui, should be passed around instead of copied or duplicated
  */
-class MenuState(var rootTag: CompoundTag, val playerUUID: UUID) {
+class MenuState(var rootTag: CompoundTag, val playerUUID: UUID, val player: ServerPlayerEntity) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()
     var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })
     var isInAddMenu = false
 
-    var handler: NBTScreenHandler? = null
     var factory: NBTScreenHandlerFactory? = null
     var suppressOnClose: AtomicBoolean = AtomicBoolean(false)
 

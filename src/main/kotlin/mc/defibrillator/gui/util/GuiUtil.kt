@@ -11,27 +11,24 @@ import mc.defibrillator.DefibState
 import mc.defibrillator.Defibrillator
 import mc.defibrillator.exception.SafeCoroutineExit
 import mc.defibrillator.gui.NBTScreenHandlerFactory
-import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.data.RightClickMode
 import mc.defibrillator.util.asHashtag
 import mc.defibrillator.util.copyableText
 import mc.defibrillator.util.delete
 import mc.defibrillator.util.retrieve
-import net.minecraft.item.ItemConvertible
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.nbt.*
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
-import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.github.p03w.quecee.api.util.guiStack
+import org.github.p03w.quecee.util.GuiAction
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
-
-typealias GuiAction = (Int, GuiStateComposite) -> Unit
 
 /**
  * Opens a NBT editing/viewing gui
@@ -48,7 +45,7 @@ fun openNBTGui(
     allowEditing: Boolean = true,
     onClose: (MenuState) -> Unit
 ): MenuState {
-    val factory = NBTScreenHandlerFactory(title, state, allowEditing, onClose)
+    val factory = NBTScreenHandlerFactory(player, title, state, allowEditing, onClose)
     player.openHandledScreen(factory)
     return state
 }
@@ -57,29 +54,27 @@ fun openNBTGui(
  * Prompts the player for a text entry in chat with a 30s timeout
  */
 @ExperimentalTime
-fun getTextEntry(composite: GuiStateComposite, forMessage: String, onComplete: (String?) -> Unit) {
-    composite.state.suppressOnClose.set(true)
-
-    val player = composite.player
+fun getTextEntry(state: MenuState, forMessage: String, onComplete: (String?) -> Unit) {
+    state.suppressOnClose.set(true)
 
     GlobalScope.launch(Defibrillator.crashHandler) {
         try {
-            player.closeHandledScreen()
-            player.sendMessage(LiteralText("Type in chat for $forMessage"), false)
+            state.player.closeHandledScreen()
+            state.player.sendMessage(LiteralText("Type in chat for $forMessage"), false)
 
             val topRoutine = this
 
             launch(Defibrillator.crashHandler) {
                 delay(30.toDuration(DurationUnit.SECONDS))
-                player.sendMessage(LiteralText("Timed out!").formatted(Formatting.RED), false)
-                DefibState.awaitingInput.remove(player)
+                state.player.sendMessage(LiteralText("Timed out!").formatted(Formatting.RED), false)
+                DefibState.awaitingInput.remove(state.player)
                 topRoutine.cancel()
             }
 
-            DefibState.awaitingInput[player] = {
-                DefibState.readInput.computeIfAbsent(player) { mutableListOf() }
-                DefibState.readInput[player]!!.add(it)
-                player.sendMessage(LiteralText("${forMessage.capitalize()} set"), false)
+            DefibState.awaitingInput[state.player] = {
+                DefibState.readInput.computeIfAbsent(state.player) { mutableListOf() }
+                DefibState.readInput[state.player]!!.add(it)
+                state.player.sendMessage(LiteralText("${forMessage.capitalize()} set"), false)
                 topRoutine.cancel(SafeCoroutineExit())
             }
 
@@ -88,34 +83,18 @@ fun getTextEntry(composite: GuiStateComposite, forMessage: String, onComplete: (
             }
         } catch (err: Throwable) {
             if (err is SafeCoroutineExit) {
-                onComplete(DefibState.readInput[composite.player]?.removeFirstOrNull())
+                onComplete(DefibState.readInput[state.player]?.removeFirstOrNull())
             }
-            composite.state.suppressOnClose.set(false)
+            state.suppressOnClose.set(false)
         }
     }
-}
-
-/**
- * Converts an ItemConvertible into an ItemStack with a custom name and a tag that makes it get cleaned up from creative
- */
-fun ItemConvertible.guiStack(name: String = "", nameColor: Formatting = Formatting.WHITE): ItemStack {
-    return ItemStack(this)
-        .setCustomName(
-            LiteralText(name)
-                .setStyle(
-                    Style.EMPTY
-                        .withItalic(false)
-                        .withFormatting(nameColor)
-                )
-        )
-        .apply { orCreateTag.putBoolean("defib-DELETE", true) }
 }
 
 /**
  * Generates an ItemStack and GuiAction for the tag with the given name
  */
 @ExperimentalTime
-fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction> {
+fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction<MenuState>> {
     return when (this) {
         is ByteArrayTag -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Byte)")) { data, composite ->
             modeOrOpen(data, name, composite)
@@ -173,45 +152,45 @@ fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction> {
  * Executes the mode action if right click, executes the default action and refreshes
  */
 @ExperimentalTime
-fun modeOrDo(data: Int, name: String, composite: GuiStateComposite, action: GuiAction) {
+fun modeOrDo(data: Int, name: String, state: MenuState, action: GuiAction<MenuState>) {
     if (data == 1) {
-        when (composite.state.clickMode) {
-            RightClickMode.PASS -> action(data, composite)
-            RightClickMode.DELETE -> composite.state.getActiveTag().delete(name)
-            RightClickMode.COPY -> copy(composite, name)
+        when (state.clickMode) {
+            RightClickMode.PASS -> action(data, state)
+            RightClickMode.DELETE -> state.getActiveTag().delete(name)
+            RightClickMode.COPY -> copy(state, name)
         }
     } else {
-        action(data, composite)
+        action(data, state)
     }
-    composite.state.factory?.makeAndUpdateNBTViewer(composite.defaultedInventory, composite.state)
+    state.factory?.rebuild()
 }
 
 /**
  * Executes the mode action if right click, otherwise adds the tag to the keyStack and refreshes
  */
 @ExperimentalTime
-fun modeOrOpen(data: Int, name: String, composite: GuiStateComposite) {
+fun modeOrOpen(data: Int, name: String, state: MenuState) {
     if (data == 1) {
-        when (composite.state.clickMode) {
-            RightClickMode.PASS -> composite.state.keyStack.add(name)
-            RightClickMode.DELETE -> composite.state.getActiveTag().delete(name)
-            RightClickMode.COPY -> copy(composite, name)
+        when (state.clickMode) {
+            RightClickMode.PASS -> state.keyStack.add(name)
+            RightClickMode.DELETE -> state.getActiveTag().delete(name)
+            RightClickMode.COPY -> copy(state, name)
         }
     } else {
-        composite.state.keyStack.add(name)
+        state.keyStack.add(name)
     }
-    composite.state.factory?.makeAndUpdateNBTViewer(composite.defaultedInventory, composite.state)
+    state.factory?.rebuild()
 }
 
 /**
  * Sends a message to the player with text that can be clicked to copy the string representation of the tag
  */
-private fun copy(composite: GuiStateComposite, name: String) {
-    val tag = composite.state.getActiveTag().retrieve(name)
-    composite.player.sendMessage(
+private fun copy(state: MenuState, name: String) {
+    val tag = state.getActiveTag().retrieve(name)
+    state.player.sendMessage(
         copyableText(
             tag.toString(),
-            "Click to copy ${composite.state.keyStack.joinToString("/")}/$name"
+            "Click to copy ${state.keyStack.joinToString("/")}/$name"
         ), false
     )
 }

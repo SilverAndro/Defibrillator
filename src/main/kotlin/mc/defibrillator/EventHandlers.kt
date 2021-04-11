@@ -53,7 +53,7 @@ object EventHandlers {
             val state = DefibState.activeSessions.getB(uuid)
             state.rootTag = data.copy()
             if (!state.isInAddMenu) {
-                state.factory?.makeAndUpdateNBTViewer(state.handler?.inv!!, state)
+                state.factory?.rebuild()
             }
         } catch (ignored: NullPointerException) {
             // Don't have a session
@@ -79,7 +79,8 @@ object EventHandlers {
                             LiteralText("Held Item (VIEW)"),
                             MenuState(
                                 it.source.player.mainHandStack.toTag(CompoundTag()),
-                                Util.NIL_UUID
+                                Util.NIL_UUID,
+                                it.source.player
                             ),
                             false
                         ) { }
@@ -99,7 +100,8 @@ object EventHandlers {
                                         .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}] (VIEW)")),
                                     MenuState(
                                         tag,
-                                        Util.NIL_UUID
+                                        Util.NIL_UUID,
+                                        it.source.player
                                     ),
                                     false
                                 ) { }
@@ -127,7 +129,8 @@ object EventHandlers {
                                         .append(LiteralText(" (VIEW)")),
                                     MenuState(
                                         OfflineDataCache.INSTANCE.get(uuid).copy(),
-                                        uuid
+                                        uuid,
+                                        it.source.player
                                     ),
                                     false
                                 ) { }
@@ -153,7 +156,8 @@ object EventHandlers {
                             LiteralText("Held Item"),
                             MenuState(
                                 it.source.player.mainHandStack.toTag(CompoundTag()),
-                                Util.NIL_UUID
+                                Util.NIL_UUID,
+                                it.source.player
                             )
                         ) { state ->
                             it.source.player.setStackInHand(
@@ -178,7 +182,8 @@ object EventHandlers {
                                         .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
                                     MenuState(
                                         tag,
-                                        Util.NIL_UUID
+                                        Util.NIL_UUID,
+                                        it.source.player
                                     )
                                 ) { state ->
                                     entity.fromTag(world.getBlockState(pos), state.rootTag)
@@ -208,7 +213,8 @@ object EventHandlers {
                                         LiteralText(it.getArgument("playerData", String::class.java)),
                                         MenuState(
                                             OfflineDataCache.INSTANCE.get(uuid).copy(),
-                                            uuid
+                                            uuid,
+                                            it.source.player
                                         )
                                     ) { state ->
                                         try {

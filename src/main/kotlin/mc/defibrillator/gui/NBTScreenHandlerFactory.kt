@@ -9,41 +9,38 @@ package mc.defibrillator.gui
 import mc.defibrillator.DefibState
 import mc.defibrillator.Defibrillator
 import mc.defibrillator.exception.InvalidArgument
-import mc.defibrillator.gui.data.GuiStateComposite
 import mc.defibrillator.gui.data.MenuState
 import mc.defibrillator.gui.data.RightClickMode
-import mc.defibrillator.gui.inventory.ItemActionMap
-import mc.defibrillator.gui.inventory.SimpleDefaultedInventory
-import mc.defibrillator.gui.util.*
+import mc.defibrillator.gui.util.getTextEntry
+import mc.defibrillator.gui.util.toGuiEntry
 import mc.defibrillator.util.*
 import net.fabricmc.fabric.api.util.NbtType
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.Items
 import net.minecraft.nbt.*
-import net.minecraft.screen.NamedScreenHandlerFactory
-import net.minecraft.screen.ScreenHandler
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Util
+import org.github.p03w.quecee.api.gui.QueCeeHandlerFactory
+import org.github.p03w.quecee.api.gui.inventory.ItemActionMap
+import org.github.p03w.quecee.api.util.guiStack
 import kotlin.time.ExperimentalTime
 
 class NBTScreenHandlerFactory(
+    private val player: ServerPlayerEntity,
     private val title: Text,
-    private val state: MenuState,
+    menuState: MenuState,
     private val allowEditing: Boolean,
-    private val onClose: (MenuState) -> Unit
-) : NamedScreenHandlerFactory {
+    onClose: (MenuState) -> Unit
+) : QueCeeHandlerFactory<MenuState>(
+    title,
+    6,
+    menuState,
+    onClose
+) {
     init {
-        state.factory = this
-    }
-
-    @ExperimentalTime
-    override fun createMenu(syncId: Int, inv: PlayerInventory, player: PlayerEntity): ScreenHandler {
-        val defaultedInv = newDefaulted()
-        val actionMap = makeAndUpdateNBTViewer(defaultedInv, state)
-        return NBTScreenHandler(syncId, inv, defaultedInv, actionMap, state, onClose)
+        menuState.factory = this
     }
 
     override fun getDisplayName(): Text {
@@ -51,45 +48,45 @@ class NBTScreenHandlerFactory(
     }
 
     @ExperimentalTime
-    fun makeAndUpdateNBTViewer(
-        defaultedInventory: SimpleDefaultedInventory, state: MenuState
-    ): ItemActionMap {
-        val actionMap = ItemActionMap {
+    fun makeNBTViewer(
+        state: MenuState
+    ): ItemActionMap<MenuState> {
+        val actionMap = ItemActionMap<MenuState> {
             // Last page if not on first page
             if (state.page > 0) {
                 addEntry(
                     0,
                     Items.PLAYER_HEAD.guiStack("Last Page").applySkull(BACK_TEXTURE, BACK_ID)
-                ) { _, composite ->
-                    composite.state.page -= 1
-                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                ) { _, _ ->
+                    state.page -= 1
+                    rebuild()
                 }
             }
 
             // Delete option
             when (state.clickMode) {
-                RightClickMode.PASS -> addEntry(2, Items.GLASS.guiStack("Right Click: None")) { _, composite ->
-                    composite.state.clickMode = RightClickMode.COPY
-                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                RightClickMode.PASS -> addEntry(2, Items.GLASS.guiStack("Right Click: None")) { _, _ ->
+                    state.clickMode = RightClickMode.COPY
+                    rebuild()
                 }
-                RightClickMode.COPY -> addEntry(2, Items.EMERALD.guiStack("Right Click: Copy")) { _, composite ->
-                    composite.state.clickMode = RightClickMode.DELETE
-                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                RightClickMode.COPY -> addEntry(2, Items.EMERALD.guiStack("Right Click: Copy")) { _, _ ->
+                    state.clickMode = RightClickMode.DELETE
+                    rebuild()
                 }
                 RightClickMode.DELETE -> addEntry(
                     2,
                     Items.TNT.guiStack("Right Click: Delete", Formatting.RED).withGlint()
-                ) { _, composite ->
-                    composite.state.clickMode = RightClickMode.PASS
-                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                ) { _, _ ->
+                    state.clickMode = RightClickMode.PASS
+                    rebuild()
                 }
             }
 
             // Up / parent
-            addEntry(3, Items.PLAYER_HEAD.guiStack("Up/Parent").applySkull(OUT_TEXTURE, OUT_ID)) { _, composite ->
-                composite.state.keyStack.removeLastOrNull()
-                composite.state.page = 0
-                makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+            addEntry(3, Items.PLAYER_HEAD.guiStack("Up/Parent").applySkull(OUT_TEXTURE, OUT_ID)) { _, _ ->
+                state.keyStack.removeLastOrNull()
+                state.page = 0
+                rebuild()
             }
 
             // Info
@@ -107,13 +104,13 @@ class NBTScreenHandlerFactory(
             ) { _, _ -> }
 
             // Cancel button
-            addEntry(5, Items.BARRIER.guiStack("Cancel changes (Right Click)")) { data, composite ->
+            addEntry(5, Items.BARRIER.guiStack("Cancel changes (Right Click)")) { data, _ ->
                 if (data == 1) {
-                    composite.state.suppressOnClose.set(true)
-                    composite.player.closeHandledScreen()
-                    composite.player.sendSystemMessage(LiteralText("Discarded changes"), Util.NIL_UUID)
-                    DefibState.activeSessions.remove(composite.state.playerUUID)
-                    composite.state.suppressOnClose.set(false)
+                    state.suppressOnClose.set(true)
+                    player.closeHandledScreen()
+                    player.sendSystemMessage(LiteralText("Discarded changes"), Util.NIL_UUID)
+                    DefibState.activeSessions.remove(state.playerUUID)
+                    state.suppressOnClose.set(false)
                 }
             }
 
@@ -122,8 +119,8 @@ class NBTScreenHandlerFactory(
                 addEntry(
                     6,
                     Items.PLAYER_HEAD.guiStack("Add Tag/Entry").applySkull(PLUS_TEXTURE, PLUS_ID)
-                ) { _, composite ->
-                    makeAndUpdateNBTTagAdder(defaultedInventory, composite.state)
+                ) { _, _ ->
+                    rebuild()
                 }
             }
 
@@ -132,9 +129,9 @@ class NBTScreenHandlerFactory(
                 addEntry(
                     8,
                     Items.PLAYER_HEAD.guiStack("Next Page").applySkull(NEXT_TEXTURE, NEXT_ID)
-                ) { _, composite ->
-                    composite.state.page += 1
-                    makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+                ) { _, _ ->
+                    state.page += 1
+                    rebuild()
                 }
             }
 
@@ -158,29 +155,23 @@ class NBTScreenHandlerFactory(
             }
         }
 
-        val clean = newDefaulted()
-        actionMap.copyIntoInventory(clean)
-        for (slot in 0 until clean.size()) {
-            defaultedInventory.setStack(slot, clean.getStack(slot))
-        }
-        state.handler?.actions = actionMap
         state.isInAddMenu = false
         return actionMap
     }
 
     @ExperimentalTime
-    private fun makeAndUpdateNBTTagAdder(
-        defaultedInventory: SimpleDefaultedInventory, state: MenuState
-    ) {
-        val actionMap = ItemActionMap {
+    private fun makeNBTAdder(
+        state: MenuState
+    ): ItemActionMap<MenuState> {
+        val actionMap = ItemActionMap<MenuState> {
             // Cancel
-            addEntry(0, Items.PLAYER_HEAD.guiStack("Cancel").applySkull(OUT_TEXTURE, OUT_ID)) { _, composite ->
-                composite.state.page = 0
-                makeAndUpdateNBTViewer(defaultedInventory, composite.state)
+            addEntry(0, Items.PLAYER_HEAD.guiStack("Cancel").applySkull(OUT_TEXTURE, OUT_ID)) { _, _ ->
+                state.page = 0
+                rebuild()
             }
 
-            fun punchInAndExit(tag: Tag, name: String, composite: GuiStateComposite) {
-                when (val active = composite.state.getActiveTag()) {
+            fun punchInAndExit(tag: Tag, name: String, state: MenuState) {
+                when (val active = state.getActiveTag()) {
                     is CompoundTag -> active.put(name, tag)
                     is AbstractListTag<*> -> {
                         if (active.elementType == tag.type || active.elementType == 0.toByte()) {
@@ -193,9 +184,9 @@ class NBTScreenHandlerFactory(
                         }
                     }
                 }
-                composite.state.page = 0
-                makeAndUpdateNBTViewer(defaultedInventory, composite.state)
-                composite.player.openHandledScreen(this@NBTScreenHandlerFactory)
+                state.page = 0
+                rebuild()
+                player.openHandledScreen(this@NBTScreenHandlerFactory)
             }
 
             var index = 9
@@ -212,7 +203,7 @@ class NBTScreenHandlerFactory(
 
             if (canAdd(NbtType.COMPOUND))
                 addEntry(index++, Items.SHULKER_BOX.guiStack("Compound Tag")) { _, composite ->
-                    getTextEntry(composite, "compound name") {
+                    getTextEntry(state, "compound name") {
                         punchInAndExit(CompoundTag(), it ?: "PLACEHOLDER", composite)
                     }
                 }
@@ -304,14 +295,30 @@ class NBTScreenHandlerFactory(
                     }
                 }
         }
-
-        val clean = newDefaulted()
-        actionMap.copyIntoInventory(clean)
-        for (slot in 0 until clean.size()) {
-            defaultedInventory.setStack(slot, clean.getStack(slot))
-        }
-        state.handler?.actions = actionMap
         state.isInAddMenu = true
+        return actionMap
+    }
+
+
+    @ExperimentalTime
+    private fun getDoubleTextEntry(
+        state: MenuState,
+        value2For: String,
+        onSuccess: (String, String) -> Unit
+    ) {
+        getTextEntry(state, "tag name/index") { value1 ->
+            getTextEntry(state, value2For) { value2 ->
+                try {
+                    onSuccess(value1 ?: "PLACEHOLDER", value2 ?: "0")
+                } catch (err: Throwable) {
+                    player.sendMessage(
+                        LiteralText("Failed to parse and/or handle!").formatted(Formatting.RED),
+                        false
+                    )
+                    err.printStackTrace()
+                }
+            }
+        }
     }
 
     companion object {
@@ -334,13 +341,6 @@ class NBTScreenHandlerFactory(
         private const val INFO_TEXTURE =
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjBiZTIwNWQ2MDg5ZTQ5ODIyNWU1MTFkYmMzYzFkM2JmZDA3MzkwMzlkYTRkMmUyMzFhZWEyYmIxZjc2ZjMxYSJ9fX0="
         private val INFO_ID = listOf(-1255748294, -2041099761, -1825112504, 2136088914)
-
-        private fun newDefaulted(): SimpleDefaultedInventory {
-            return SimpleDefaultedInventory(
-                9 * 6,
-                Items.LIGHT_GRAY_STAINED_GLASS_PANE.guiStack()
-            )
-        }
 
         private fun convertEntryToNumberTag(input: String): AbstractNumberTag {
             try {
@@ -373,26 +373,14 @@ class NBTScreenHandlerFactory(
                 throw InvalidArgument()
             }
         }
+    }
 
-        @ExperimentalTime
-        private fun getDoubleTextEntry(
-            composite: GuiStateComposite,
-            value2For: String,
-            onSuccess: (String, String) -> Unit
-        ) {
-            getTextEntry(composite, "tag name/index") { value1 ->
-                getTextEntry(composite, value2For) { value2 ->
-                    try {
-                        onSuccess(value1 ?: "PLACEHOLDER", value2 ?: "0")
-                    } catch (err: Throwable) {
-                        composite.player.sendMessage(
-                            LiteralText("Failed to parse and/or handle!").formatted(Formatting.RED),
-                            false
-                        )
-                        err.printStackTrace()
-                    }
-                }
-            }
+    @OptIn(ExperimentalTime::class)
+    override fun generateActionMap(state: MenuState): ItemActionMap<MenuState> {
+        return if (state.isInAddMenu) {
+            makeNBTAdder(state)
+        } else {
+            makeNBTViewer(state)
         }
     }
 }
