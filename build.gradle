@@ -16,6 +16,7 @@ repositories {
     maven {
         url 'https://jitpack.io'
     }
+    mavenLocal()
 }
 
 dependencies {
@@ -31,8 +32,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-language-kotlin:1.5.0+kotlin.1.4.31"
 
     // Aegis
-    modImplementation 'com.github.P03W:Aegis:2.1.0'
-    include 'com.github.P03W:Aegis:2.1.0'
+    modImplementation 'com.github.P03W:Aegis:2.2.1'
+    include 'com.github.P03W:Aegis:2.2.1'
 
     // Microconfig
     modImplementation 'com.github.P03W:Microconfig:2.0.1'

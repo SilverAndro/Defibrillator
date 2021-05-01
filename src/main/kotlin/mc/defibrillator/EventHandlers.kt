@@ -6,8 +6,7 @@
 
 package mc.defibrillator
 
-import com.github.p03w.aegis.AegisCommandBuilder
-import com.github.p03w.aegis.aegisCommand
+import com.github.p03w.aegis.*
 import com.mojang.brigadier.CommandDispatcher
 import mc.defibrillator.command.OfflinePlayerSuggester
 import mc.defibrillator.gui.data.MenuState
@@ -16,8 +15,6 @@ import mc.defibrillator.util.copyableText
 import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache
 import me.basiqueevangelist.nevseti.nbt.CompoundTagView
-import net.minecraft.command.argument.BlockPosArgumentType
-import net.minecraft.command.argument.UuidArgumentType
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.MinecraftServer
@@ -89,7 +86,7 @@ object EventHandlers {
                 literal("block") {
                     blockPos("blockPos") {
                         executes(debug = true) {
-                            val pos = BlockPosArgumentType.getBlockPos(it, "blockPos")
+                            val pos = it.getBlockPos("blockPos")
                             val world = it.source.world
                             val entity = world.getBlockEntity(pos)
                             if (entity != null) {
@@ -116,30 +113,32 @@ object EventHandlers {
                     }
                 }
                 literal("player") {
-                    string("playerData") {
-                        suggests(OfflinePlayerSuggester()::getSuggestions)
-                        executes(debug = true) {
-                            try {
-                                val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                    it.getArgument("playerData", String::class.java)
-                                )
-                                openNBTGui(
-                                    it.source.player,
-                                    LiteralText(it.getArgument("playerData", String::class.java))
-                                        .append(LiteralText(" (VIEW)")),
-                                    MenuState(
-                                        OfflineDataCache.INSTANCE.get(uuid).copy(),
-                                        uuid,
-                                        it.source.player
-                                    ),
-                                    false
-                                ) { }
-                            } catch (npe: NullPointerException) {
-                                it.source.sendError(
-                                    LiteralText(
-                                        "Could not load data for that user!"
-                                    ).formatted(Formatting.RED)
-                                )
+                    literal("data") {
+                        string("playerData") {
+                            suggests(OfflinePlayerSuggester()::getSuggestions)
+                            executes(debug = true) {
+                                try {
+                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                                        it.getString("playerData")
+                                    )
+                                    openNBTGui(
+                                        it.source.player,
+                                        LiteralText(it.getString("playerData"))
+                                            .append(LiteralText(" (VIEW)")),
+                                        MenuState(
+                                            OfflineDataCache.INSTANCE.get(uuid).copy(),
+                                            uuid,
+                                            it.source.player
+                                        ),
+                                        false
+                                    ) { }
+                                } catch (npe: NullPointerException) {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "Could not load data for that user!"
+                                        ).formatted(Formatting.RED)
+                                    )
+                                }
                             }
                         }
                     }
@@ -171,7 +170,7 @@ object EventHandlers {
                 literal("block") {
                     blockPos("blockPos") {
                         executes(debug = true) {
-                            val pos = BlockPosArgumentType.getBlockPos(it, "blockPos")
+                            val pos = it.getBlockPos("blockPos")
                             val world = it.source.world
                             val entity = world.getBlockEntity(pos)
                             if (entity != null) {
@@ -205,12 +204,12 @@ object EventHandlers {
                         executes(debug = true) {
                             try {
                                 val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                    it.getArgument("playerData", String::class.java)
+                                    it.getString("playerData")
                                 )
                                 if (!DefibState.activeSessions.contains(uuid)) {
                                     val state = openNBTGui(
                                         it.source.player,
-                                        LiteralText(it.getArgument("playerData", String::class.java)),
+                                        LiteralText(it.getString("playerData")),
                                         MenuState(
                                             OfflineDataCache.INSTANCE.get(uuid).copy(),
                                             uuid,
@@ -281,7 +280,7 @@ object EventHandlers {
                 literal("clear") {
                     uuid("uuid") {
                         executes {
-                            DefibState.activeSessions.remove(UuidArgumentType.getUuid(it, "uuid"))
+                            DefibState.activeSessions.remove(it.getUUID("uuid"))
                             it.source.sendFeedback(LiteralText("Removed session (if present)"), true)
                         }
                     }
