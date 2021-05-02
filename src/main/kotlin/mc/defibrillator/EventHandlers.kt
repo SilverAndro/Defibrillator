@@ -9,7 +9,9 @@ package mc.defibrillator
 import com.github.p03w.aegis.*
 import com.mojang.brigadier.CommandDispatcher
 import mc.defibrillator.command.OfflinePlayerSuggester
-import mc.defibrillator.gui.data.MenuState
+import mc.defibrillator.gui.data.AdvancementMenuState
+import mc.defibrillator.gui.data.NBTMenuState
+import mc.defibrillator.gui.util.openAdvancementGui
 import mc.defibrillator.gui.util.openNBTGui
 import mc.defibrillator.util.copyableText
 import me.basiqueevangelist.nevseti.OfflineDataCache
@@ -47,7 +49,7 @@ object EventHandlers {
     @ExperimentalTime
     fun onOfflineDataChanged(uuid: UUID, data: CompoundTagView) {
         try {
-            val state = DefibState.activeSessions.getB(uuid)
+            val state = DefibState.activeNBTSessions.getB(uuid)
             state.rootTag = data.copy()
             if (!state.isInAddMenu) {
                 state.factory?.rebuild()
@@ -74,7 +76,7 @@ object EventHandlers {
                         openNBTGui(
                             it.source.player,
                             LiteralText("Held Item (VIEW)"),
-                            MenuState(
+                            NBTMenuState(
                                 it.source.player.mainHandStack.toTag(CompoundTag()),
                                 Util.NIL_UUID,
                                 it.source.player
@@ -95,7 +97,7 @@ object EventHandlers {
                                     it.source.player,
                                     TranslatableText(world.getBlockState(pos).block.translationKey)
                                         .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}] (VIEW)")),
-                                    MenuState(
+                                    NBTMenuState(
                                         tag,
                                         Util.NIL_UUID,
                                         it.source.player
@@ -125,8 +127,36 @@ object EventHandlers {
                                         it.source.player,
                                         LiteralText(it.getString("playerData"))
                                             .append(LiteralText(" (VIEW)")),
-                                        MenuState(
+                                        NBTMenuState(
                                             OfflineDataCache.INSTANCE.get(uuid).copy(),
+                                            uuid,
+                                            it.source.player
+                                        ),
+                                        false
+                                    ) { }
+                                } catch (npe: NullPointerException) {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "Could not load data for that user!"
+                                        ).formatted(Formatting.RED)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    literal("advancemnents") {
+                        string("playerData") {
+                            suggests(OfflinePlayerSuggester()::getSuggestions)
+                            executes(debug = true) {
+                                try {
+                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                                        it.getString("playerData")
+                                    )
+                                    openAdvancementGui(
+                                        it.source.player,
+                                        LiteralText(it.getString("playerData"))
+                                            .append(LiteralText("'s Advance. (VIEW)")),
+                                        AdvancementMenuState(
                                             uuid,
                                             it.source.player
                                         ),
@@ -153,7 +183,7 @@ object EventHandlers {
                         openNBTGui(
                             it.source.player,
                             LiteralText("Held Item"),
-                            MenuState(
+                            NBTMenuState(
                                 it.source.player.mainHandStack.toTag(CompoundTag()),
                                 Util.NIL_UUID,
                                 it.source.player
@@ -179,7 +209,7 @@ object EventHandlers {
                                     it.source.player,
                                     TranslatableText(world.getBlockState(pos).block.translationKey)
                                         .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
-                                    MenuState(
+                                    NBTMenuState(
                                         tag,
                                         Util.NIL_UUID,
                                         it.source.player
@@ -206,11 +236,11 @@ object EventHandlers {
                                 val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
                                     it.getString("playerData")
                                 )
-                                if (!DefibState.activeSessions.contains(uuid)) {
+                                if (!DefibState.activeNBTSessions.contains(uuid)) {
                                     val state = openNBTGui(
                                         it.source.player,
                                         LiteralText(it.getString("playerData")),
-                                        MenuState(
+                                        NBTMenuState(
                                             OfflineDataCache.INSTANCE.get(uuid).copy(),
                                             uuid,
                                             it.source.player
@@ -227,11 +257,11 @@ object EventHandlers {
                                             )
                                             ex.printStackTrace()
                                         } finally {
-                                            DefibState.activeSessions.remove(uuid)
+                                            DefibState.activeNBTSessions.remove(uuid)
                                         }
                                     }
 
-                                    DefibState.activeSessions.set(
+                                    DefibState.activeNBTSessions.set(
                                         uuid,
                                         it.source.player,
                                         state
@@ -239,7 +269,7 @@ object EventHandlers {
                                 } else {
                                     it.source.sendError(
                                         LiteralText(
-                                            "${DefibState.activeSessions[uuid].first.entityName} already has a session open for that uuid!"
+                                            "${DefibState.activeNBTSessions[uuid].first.entityName} already has a session open for that uuid!"
                                         ).formatted(Formatting.RED)
                                     )
                                 }
@@ -280,23 +310,23 @@ object EventHandlers {
                 literal("clear") {
                     uuid("uuid") {
                         executes {
-                            DefibState.activeSessions.remove(it.getUUID("uuid"))
+                            DefibState.activeNBTSessions.remove(it.getUUID("uuid"))
                             it.source.sendFeedback(LiteralText("Removed session (if present)"), true)
                         }
                     }
                 }
                 literal("clearAll") {
                     executes {
-                        DefibState.activeSessions.clear()
+                        DefibState.activeNBTSessions.clear()
                         it.source.sendFeedback(LiteralText("Removed all sessions (if present)"), true)
                     }
                 }
                 literal("list") {
                     executes {
-                        if (DefibState.activeSessions.isEmpty()) {
+                        if (DefibState.activeNBTSessions.isEmpty()) {
                             it.source.sendFeedback(LiteralText("No active sessions"), false)
                         } else {
-                            DefibState.activeSessions.forEach { uuid, playerEntity, _ ->
+                            DefibState.activeNBTSessions.forEach { uuid, playerEntity, _ ->
                                 it.source.sendFeedback(
                                     (playerEntity.displayName as MutableText)
                                         .append(" -> ")

@@ -6,7 +6,8 @@
 
 package mc.defibrillator
 
-import mc.defibrillator.gui.data.MenuState
+import mc.defibrillator.gui.data.AdvancementMenuState
+import mc.defibrillator.gui.data.NBTMenuState
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import org.github.p03w.quecee.util.DualHashMap
@@ -20,7 +21,8 @@ object DefibState {
     val readInput: HashMap<ServerPlayerEntity, MutableList<String>> = hashMapOf()
 
     @JvmField
-    val activeSessions: DualHashMap<UUID, ServerPlayerEntity, MenuState> = DualHashMap()
+    val activeNBTSessions: DualHashMap<UUID, ServerPlayerEntity, NBTMenuState> = DualHashMap()
+    val activeAdvancementSessions: DualHashMap<UUID, ServerPlayerEntity, AdvancementMenuState> = DualHashMap()
 
     @JvmStatic
     internal lateinit var serverInstance: MinecraftServer

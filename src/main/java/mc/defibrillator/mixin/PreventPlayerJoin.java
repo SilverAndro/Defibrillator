@@ -27,13 +27,13 @@ public class PreventPlayerJoin {
         cancellable = true
     )
     public void preventPlayersFromJoiningWhileDataEdited(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Text> cir) {
-        if (DefibState.activeSessions.contains(profile.getId())) {
+        if (DefibState.activeNBTSessions.contains(profile.getId())) {
             cir.setReturnValue(
                 new LiteralText(
                     Defibrillator
                         .getConfig()
                         .failedConnectMessage
-                        .replace("%editor%", DefibState.activeSessions.get(profile.getId()).component1().getEntityName())
+                        .replace("%editor%", DefibState.activeNBTSessions.get(profile.getId()).component1().getEntityName())
                 )
             );
         }

@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * The state of the gui, should be passed around instead of copied or duplicated
  */
-class MenuState(var rootTag: CompoundTag, val playerUUID: UUID, val player: ServerPlayerEntity) {
+class NBTMenuState(var rootTag: CompoundTag, val playerUUID: UUID, val player: ServerPlayerEntity) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()
     var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })

@@ -10,8 +10,10 @@ import kotlinx.coroutines.*
 import mc.defibrillator.DefibState
 import mc.defibrillator.Defibrillator
 import mc.defibrillator.exception.SafeCoroutineExit
+import mc.defibrillator.gui.AdvancementScreenHandlerFactory
 import mc.defibrillator.gui.NBTScreenHandlerFactory
-import mc.defibrillator.gui.data.MenuState
+import mc.defibrillator.gui.data.AdvancementMenuState
+import mc.defibrillator.gui.data.NBTMenuState
 import mc.defibrillator.gui.data.RightClickMode
 import mc.defibrillator.util.asHashtag
 import mc.defibrillator.util.copyableText
@@ -35,26 +37,49 @@ import kotlin.time.toDuration
  *
  * @param player The player that will have the screen opened
  * @param title Title of the screen
- * @param state A MenuState that will be passed around
+ * @param state A NBTMenuState that will be passed around
+ * @param allowEditing if editing data should be allowed
  * @param onClose A method that will be called when the screen is closed (if not suppressed)
  */
 fun openNBTGui(
     player: ServerPlayerEntity,
     title: Text,
-    state: MenuState,
+    state: NBTMenuState,
     allowEditing: Boolean = true,
-    onClose: (MenuState) -> Unit
-): MenuState {
+    onClose: (NBTMenuState) -> Unit
+): NBTMenuState {
     val factory = NBTScreenHandlerFactory(player, title, state, allowEditing, onClose)
     player.openHandledScreen(factory)
     return state
 }
 
 /**
+ * Opens an Advancement editing/viewing gui
+ *
+ * @param player The player that will have the screen opened
+ * @param title Title of the screen
+ * @param state A NBTMenuState that will be passed around
+ * @param allowEditing if editing data should be allowed
+ * @param onClose A method that will be called when the screen is closed (if not suppressed)
+ */
+fun openAdvancementGui(
+    player: ServerPlayerEntity,
+    title: Text,
+    state: AdvancementMenuState,
+    allowEditing: Boolean = true,
+    onClose: (AdvancementMenuState) -> Unit
+): AdvancementMenuState {
+    val factory = AdvancementScreenHandlerFactory(player, title, state, allowEditing, onClose)
+    player.openHandledScreen(factory)
+    return state
+}
+
+
+/**
  * Prompts the player for a text entry in chat with a 30s timeout
  */
 @ExperimentalTime
-fun getTextEntry(state: MenuState, forMessage: String, onComplete: (String?) -> Unit) {
+fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) -> Unit) {
     state.suppressOnClose.set(true)
 
     GlobalScope.launch(Defibrillator.crashHandler) {
@@ -94,7 +119,7 @@ fun getTextEntry(state: MenuState, forMessage: String, onComplete: (String?) -> 
  * Generates an ItemStack and GuiAction for the tag with the given name
  */
 @ExperimentalTime
-fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction<MenuState>> {
+fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction<NBTMenuState>> {
     return when (this) {
         is ByteArrayTag -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Byte)")) { data, composite ->
             modeOrOpen(data, name, composite)
@@ -152,7 +177,7 @@ fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction<MenuState>> {
  * Executes the mode action if right click, executes the default action and refreshes
  */
 @ExperimentalTime
-fun modeOrDo(data: Int, name: String, state: MenuState, action: GuiAction<MenuState>) {
+fun modeOrDo(data: Int, name: String, state: NBTMenuState, action: GuiAction<NBTMenuState>) {
     if (data == 1) {
         when (state.clickMode) {
             RightClickMode.PASS -> action(data, state)
@@ -169,7 +194,7 @@ fun modeOrDo(data: Int, name: String, state: MenuState, action: GuiAction<MenuSt
  * Executes the mode action if right click, otherwise adds the tag to the keyStack and refreshes
  */
 @ExperimentalTime
-fun modeOrOpen(data: Int, name: String, state: MenuState) {
+fun modeOrOpen(data: Int, name: String, state: NBTMenuState) {
     if (data == 1) {
         when (state.clickMode) {
             RightClickMode.PASS -> state.keyStack.add(name)
@@ -185,7 +210,7 @@ fun modeOrOpen(data: Int, name: String, state: MenuState) {
 /**
  * Sends a message to the player with text that can be clicked to copy the string representation of the tag
  */
-private fun copy(state: MenuState, name: String) {
+private fun copy(state: NBTMenuState, name: String) {
     val tag = state.getActiveTag().retrieve(name)
     state.player.sendMessage(
         copyableText(
