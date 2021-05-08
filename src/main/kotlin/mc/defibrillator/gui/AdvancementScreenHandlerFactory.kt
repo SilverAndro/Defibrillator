@@ -2,16 +2,10 @@ package mc.defibrillator.gui
 
 import mc.defibrillator.DefibState
 import mc.defibrillator.gui.data.AdvancementMenuState
-import mc.defibrillator.gui.data.NBTMenuState
-import mc.defibrillator.gui.data.RightClickMode
 import mc.defibrillator.gui.util.TexturingConstants
-import mc.defibrillator.gui.util.toGuiEntry
-import mc.defibrillator.util.applySkull
-import mc.defibrillator.util.retrieve
-import mc.defibrillator.util.withGlint
-import mc.defibrillator.util.withLore
+import mc.defibrillator.util.*
 import me.basiqueevangelist.nevseti.OfflineAdvancementCache
-import net.minecraft.advancement.AdvancementManager
+import net.minecraft.client.gui.screen.advancement.AdvancementObtainedStatus
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.server.network.ServerPlayerEntity
@@ -48,7 +42,10 @@ class AdvancementScreenHandlerFactory(
             val all = player.server.advancementLoader.advancements.filter { !it.id.path.startsWith("recipe") }
             val complete = buildList<Pair<Identifier, Boolean>> {
                 all.forEach {
-                    add(Pair(it.id, cache[it.id]?.isDone ?: false))
+                    val total = cache[it.id]?.copy()?.criteriaProgress()?.size ?: 0
+                    val remaining = cache[it.id]?.unobtainedCriteria?.toList()?.size ?: 0
+                    val progress = remaining / total.toFloat()
+                    add(Pair(it.id, progress.isFinite()))
                 }
             }
 
@@ -117,7 +114,11 @@ class AdvancementScreenHandlerFactory(
 
     private fun advancementToGuiEntry(advancement: Pair<Identifier, Boolean>): Pair<ItemStack, GuiAction<AdvancementMenuState>> {
         println(advancement)
-        return Pair(Items.PAPER.guiStack(advancement.first.toString()).withGlint(advancement.second)) { i: Int, state: AdvancementMenuState ->
+        return Pair(
+            Items.PAPER
+                .guiStack(advancement.first.toString())
+                .withGlint(advancement.second)
+        ) { i: Int, state: AdvancementMenuState ->
             println("$i $state")
         }
     }
