@@ -42,10 +42,8 @@ class AdvancementScreenHandlerFactory(
             val all = player.server.advancementLoader.advancements.filter { !it.id.path.startsWith("recipe") }
             val complete = buildList<Pair<Identifier, Boolean>> {
                 all.forEach {
-                    val total = cache[it.id]?.copy()?.criteriaProgress()?.size ?: 0
-                    val remaining = cache[it.id]?.unobtainedCriteria?.toList()?.size ?: 0
-                    val progress = remaining / total.toFloat()
-                    add(Pair(it.id, progress.isFinite()))
+                    println("${it.id.toString().padEnd(50, ' ')}${cache[it.id]?.isDone}")
+                    add(Pair(it.id, cache[it.id]?.isDone ?: true))
                 }
             }
 
@@ -113,11 +111,10 @@ class AdvancementScreenHandlerFactory(
     }
 
     private fun advancementToGuiEntry(advancement: Pair<Identifier, Boolean>): Pair<ItemStack, GuiAction<AdvancementMenuState>> {
-        println(advancement)
         return Pair(
             Items.PAPER
                 .guiStack(advancement.first.toString())
-                .withGlint(advancement.second)
+                .withGlint(advancement.second.not())
         ) { i: Int, state: AdvancementMenuState ->
             println("$i $state")
         }
