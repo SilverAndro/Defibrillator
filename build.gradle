@@ -40,12 +40,12 @@ dependencies {
     include 'com.github.P03W:Microconfig:2.0.1'
 
     // Ne-V-Seti
-    modImplementation 'com.github.BasiqueEvangelist:ne-v-seti:0.1.5'
-    include 'com.github.BasiqueEvangelist:ne-v-seti:0.1.5'
+    modImplementation 'com.github.BasiqueEvangelist:ne-v-seti:-SNAPSHOT'
+    include 'com.github.BasiqueEvangelist:ne-v-seti:-SNAPSHOT'
 
     // QueCee
-    modImplementation 'com.github.P03W:QueCee:1.0.0'
-    include 'com.github.P03W:QueCee:1.0.0'
+    modImplementation 'com.github.p03w:quecee:1.0.2'
+    include 'com.github.p03w:quecee:1.0.2'
 }
 
 // Licenser

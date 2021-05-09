@@ -11,6 +11,7 @@ import net.minecraft.item.Items
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
+import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
@@ -42,8 +43,7 @@ class AdvancementScreenHandlerFactory(
             val all = player.server.advancementLoader.advancements.filter { !it.id.path.startsWith("recipe") }
             val complete = buildList<Pair<Identifier, Boolean>> {
                 all.forEach {
-                    println("${it.id.toString().padEnd(50, ' ')}${cache[it.id]?.isDone}")
-                    add(Pair(it.id, cache[it.id]?.isDone ?: true))
+                    add(Pair(it.id, cache[it.id]?.isDone ?: false))
                 }
             }
 
@@ -105,16 +105,16 @@ class AdvancementScreenHandlerFactory(
                     val converted = advancementToGuiEntry(possible)
                     addEntry(index++, converted.first, converted.second)
                 }
-            } catch (ignored: IndexOutOfBoundsException) {
-            }
+            } catch (ignored: IndexOutOfBoundsException) { }
         }
     }
 
     private fun advancementToGuiEntry(advancement: Pair<Identifier, Boolean>): Pair<ItemStack, GuiAction<AdvancementMenuState>> {
+        val namespace = "advancements.${advancement.first.path.replace('/', '.')}"
         return Pair(
             Items.PAPER
-                .guiStack(advancement.first.toString())
-                .withGlint(advancement.second.not())
+                .guiStack(TranslatableText("$namespace.title"), if (advancement.second) Formatting.GREEN else Formatting.RED)
+                .withGlint(advancement.second)
         ) { i: Int, state: AdvancementMenuState ->
             println("$i $state")
         }
