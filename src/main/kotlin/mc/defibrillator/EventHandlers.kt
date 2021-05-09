@@ -191,11 +191,13 @@ object EventHandlers {
                                 it.source.player
                             )
                         ) { state ->
-                            it.source.player.setStackInHand(
-                                Hand.MAIN_HAND,
-                                ItemStack.fromTag(state.rootTag)
-                            )
-                            it.source.sendFeedback(LiteralText("Saved item data"), false)
+                            if (state.suppressOnClose.get().not()) {
+                                it.source.player.setStackInHand(
+                                    Hand.MAIN_HAND,
+                                    ItemStack.fromTag(state.rootTag)
+                                )
+                                it.source.sendFeedback(LiteralText("Saved item data"), false)
+                            }
                         }
                     }
                 }
@@ -217,8 +219,10 @@ object EventHandlers {
                                         it.source.player
                                     )
                                 ) { state ->
-                                    entity.fromTag(world.getBlockState(pos), state.rootTag)
-                                    it.source.sendFeedback(LiteralText("Saved block data"), false)
+                                    if (state.suppressOnClose.get().not()) {
+                                        entity.fromTag(world.getBlockState(pos), state.rootTag)
+                                        it.source.sendFeedback(LiteralText("Saved block data"), false)
+                                    }
                                 }
                             } else {
                                 it.source.sendError(
@@ -249,18 +253,20 @@ object EventHandlers {
                                                 it.source.player
                                             )
                                         ) { state ->
-                                            try {
-                                                OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
-                                                it.source.sendFeedback(LiteralText("Saved user data"), true)
-                                            } catch (ex: Exception) {
-                                                it.source.sendError(
-                                                    LiteralText("Failed to save user data").formatted(
-                                                        Formatting.RED
+                                            if (state.suppressOnClose.get().not()) {
+                                                try {
+                                                    OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
+                                                    it.source.sendFeedback(LiteralText("Saved user data"), true)
+                                                } catch (ex: Exception) {
+                                                    it.source.sendError(
+                                                        LiteralText("Failed to save user data").formatted(
+                                                            Formatting.RED
+                                                        )
                                                     )
-                                                )
-                                                ex.printStackTrace()
-                                            } finally {
-                                                DefibState.activeNBTSessions.remove(uuid)
+                                                    ex.printStackTrace()
+                                                } finally {
+                                                    DefibState.activeNBTSessions.remove(uuid)
+                                                }
                                             }
                                         }
 
@@ -304,12 +310,14 @@ object EventHandlers {
                                         ),
                                         true
                                     ) { state ->
-                                        state.overrides.forEach { (id, state) ->
-                                            val actual = it.source.player.server.advancementLoader[id]
-                                            if (state) {
-                                                OfflineAdvancementUtils.grant(uuid, actual)
-                                            } else {
-                                                OfflineAdvancementUtils.revoke(uuid, actual)
+                                        if (state.suppressOnClose.get().not()) {
+                                            state.overrides.forEach { (id, state) ->
+                                                val actual = it.source.player.server.advancementLoader[id]
+                                                if (state) {
+                                                    OfflineAdvancementUtils.grant(uuid, actual)
+                                                } else {
+                                                    OfflineAdvancementUtils.revoke(uuid, actual)
+                                                }
                                             }
                                         }
                                     }

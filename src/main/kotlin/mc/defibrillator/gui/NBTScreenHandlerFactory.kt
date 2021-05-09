@@ -126,6 +126,7 @@ class NBTScreenHandlerFactory(
                     Items.PLAYER_HEAD.guiStack("Add Tag/Entry")
                         .applySkull(TexturingConstants.PLUS_TEXTURE, TexturingConstants.PLUS_ID)
                 ) { _, _ ->
+                    state.isInAddMenu = true
                     rebuild()
                 }
             }
@@ -177,6 +178,7 @@ class NBTScreenHandlerFactory(
                     .applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)
             ) { _, _ ->
                 state.page = 0
+                state.isInAddMenu = false
                 rebuild()
             }
 
@@ -195,6 +197,7 @@ class NBTScreenHandlerFactory(
                     }
                 }
                 state.page = 0
+                state.isInAddMenu = false
                 rebuild()
                 player.openHandledScreen(this@NBTScreenHandlerFactory)
             }
