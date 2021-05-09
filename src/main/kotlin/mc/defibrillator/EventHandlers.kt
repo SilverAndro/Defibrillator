@@ -14,7 +14,6 @@ import mc.defibrillator.gui.data.NBTMenuState
 import mc.defibrillator.gui.util.openAdvancementGui
 import mc.defibrillator.gui.util.openNBTGui
 import mc.defibrillator.util.copyableText
-import me.basiqueevangelist.nevseti.OfflineAdvancementCache
 import me.basiqueevangelist.nevseti.OfflineAdvancementUtils
 import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache

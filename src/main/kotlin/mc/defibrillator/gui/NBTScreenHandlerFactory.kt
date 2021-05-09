@@ -85,7 +85,8 @@ class NBTScreenHandlerFactory(
             }
 
             // Up / parent
-            addEntry(3,
+            addEntry(
+                3,
                 Items.PLAYER_HEAD.guiStack("Up/Parent")
                     .applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)
             ) { _, _ ->
@@ -173,7 +174,8 @@ class NBTScreenHandlerFactory(
     ): ItemActionMap<NBTMenuState> {
         val actionMap = ItemActionMap<NBTMenuState> {
             // Cancel
-            addEntry(0,
+            addEntry(
+                0,
                 Items.PLAYER_HEAD.guiStack("Cancel")
                     .applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)
             ) { _, _ ->
