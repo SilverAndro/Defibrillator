@@ -3,9 +3,10 @@ package mc.defibrillator.gui
 import mc.defibrillator.DefibState
 import mc.defibrillator.gui.data.AdvancementMenuState
 import mc.defibrillator.gui.util.TexturingConstants
-import mc.defibrillator.util.*
+import mc.defibrillator.util.applySkull
+import mc.defibrillator.util.withGlint
+import mc.defibrillator.util.withLore
 import me.basiqueevangelist.nevseti.OfflineAdvancementCache
-import net.minecraft.client.gui.screen.advancement.AdvancementObtainedStatus
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.server.network.ServerPlayerEntity
@@ -32,6 +33,10 @@ class AdvancementScreenHandlerFactory(
     menuState,
     onClose
 ) {
+    init {
+        state.factory = this
+    }
+
     override fun getDisplayName(): Text {
         return title
     }
@@ -43,7 +48,9 @@ class AdvancementScreenHandlerFactory(
             val all = player.server.advancementLoader.advancements.filter { !it.id.path.startsWith("recipe") }
             val complete = buildList<Pair<Identifier, Boolean>> {
                 all.forEach {
-                    add(Pair(it.id, cache[it.id]?.isDone ?: false))
+                    val defaultState = cache[it.id]?.isDone ?: false
+                    val trueState = state.overrides[it.id] ?: defaultState
+                    add(Pair(it.id, trueState))
                 }
             }
 
@@ -105,7 +112,8 @@ class AdvancementScreenHandlerFactory(
                     val converted = advancementToGuiEntry(possible)
                     addEntry(index++, converted.first, converted.second)
                 }
-            } catch (ignored: IndexOutOfBoundsException) { }
+            } catch (ignored: IndexOutOfBoundsException) {
+            }
         }
     }
 
@@ -113,10 +121,16 @@ class AdvancementScreenHandlerFactory(
         val namespace = "advancements.${advancement.first.path.replace('/', '.')}"
         return Pair(
             Items.PAPER
-                .guiStack(TranslatableText("$namespace.title"), if (advancement.second) Formatting.GREEN else Formatting.RED)
+                .guiStack(
+                    TranslatableText("$namespace.title"),
+                    if (advancement.second) Formatting.GREEN else Formatting.RED
+                )
                 .withGlint(advancement.second)
         ) { i: Int, state: AdvancementMenuState ->
-            println("$i $state")
+            if (allowEditing) {
+                state.overrides[advancement.first] = advancement.second.not()
+                state.factory.rebuild()
+            }
         }
     }
 }

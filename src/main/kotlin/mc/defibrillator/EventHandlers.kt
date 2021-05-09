@@ -14,6 +14,8 @@ import mc.defibrillator.gui.data.NBTMenuState
 import mc.defibrillator.gui.util.openAdvancementGui
 import mc.defibrillator.gui.util.openNBTGui
 import mc.defibrillator.util.copyableText
+import me.basiqueevangelist.nevseti.OfflineAdvancementCache
+import me.basiqueevangelist.nevseti.OfflineAdvancementUtils
 import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache
 import me.basiqueevangelist.nevseti.nbt.CompoundTagView
@@ -229,56 +231,95 @@ object EventHandlers {
                     }
                 }
                 literal("player") {
-                    string("playerData") {
-                        suggests(OfflinePlayerSuggester()::getSuggestions)
-                        executes(debug = true) {
-                            try {
-                                val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                    it.getString("playerData")
-                                )
-                                if (!DefibState.activeNBTSessions.contains(uuid)) {
-                                    val state = openNBTGui(
-                                        it.source.player,
-                                        LiteralText(it.getString("playerData")),
-                                        NBTMenuState(
-                                            OfflineDataCache.INSTANCE.get(uuid).copy(),
-                                            uuid,
-                                            it.source.player
-                                        )
-                                    ) { state ->
-                                        try {
-                                            OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
-                                            it.source.sendFeedback(LiteralText("Saved user data"), true)
-                                        } catch (ex: Exception) {
-                                            it.source.sendError(
-                                                LiteralText("Failed to save user data").formatted(
-                                                    Formatting.RED
-                                                )
-                                            )
-                                            ex.printStackTrace()
-                                        } finally {
-                                            DefibState.activeNBTSessions.remove(uuid)
-                                        }
-                                    }
-
-                                    DefibState.activeNBTSessions.set(
-                                        uuid,
-                                        it.source.player,
-                                        state
+                    literal("data") {
+                        string("playerData") {
+                            suggests(OfflinePlayerSuggester()::getSuggestions)
+                            executes(debug = true) {
+                                try {
+                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                                        it.getString("playerData")
                                     )
-                                } else {
+                                    if (!DefibState.activeNBTSessions.contains(uuid)) {
+                                        val state = openNBTGui(
+                                            it.source.player,
+                                            LiteralText(it.getString("playerData")),
+                                            NBTMenuState(
+                                                OfflineDataCache.INSTANCE.get(uuid).copy(),
+                                                uuid,
+                                                it.source.player
+                                            )
+                                        ) { state ->
+                                            try {
+                                                OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
+                                                it.source.sendFeedback(LiteralText("Saved user data"), true)
+                                            } catch (ex: Exception) {
+                                                it.source.sendError(
+                                                    LiteralText("Failed to save user data").formatted(
+                                                        Formatting.RED
+                                                    )
+                                                )
+                                                ex.printStackTrace()
+                                            } finally {
+                                                DefibState.activeNBTSessions.remove(uuid)
+                                            }
+                                        }
+
+                                        DefibState.activeNBTSessions.set(
+                                            uuid,
+                                            it.source.player,
+                                            state
+                                        )
+                                    } else {
+                                        it.source.sendError(
+                                            LiteralText(
+                                                "${DefibState.activeNBTSessions[uuid].first.entityName} already has a session open for that uuid!"
+                                            ).formatted(Formatting.RED)
+                                        )
+                                    }
+                                } catch (npe: NullPointerException) {
                                     it.source.sendError(
                                         LiteralText(
-                                            "${DefibState.activeNBTSessions[uuid].first.entityName} already has a session open for that uuid!"
+                                            "Could not load data for that user!"
                                         ).formatted(Formatting.RED)
                                     )
                                 }
-                            } catch (npe: NullPointerException) {
-                                it.source.sendError(
-                                    LiteralText(
-                                        "Could not load data for that user!"
-                                    ).formatted(Formatting.RED)
-                                )
+                            }
+                        }
+                    }
+                    literal("advancemnents") {
+                        string("playerData") {
+                            suggests(OfflinePlayerSuggester()::getSuggestions)
+                            executes(debug = true) {
+                                try {
+                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                                        it.getString("playerData")
+                                    )
+                                    openAdvancementGui(
+                                        it.source.player,
+                                        LiteralText(it.getString("playerData"))
+                                            .append(LiteralText("'s Advancements")),
+                                        AdvancementMenuState(
+                                            uuid,
+                                            it.source.player
+                                        ),
+                                        true
+                                    ) { state ->
+                                        state.overrides.forEach { (id, state) ->
+                                            val actual = it.source.player.server.advancementLoader[id]
+                                            if (state) {
+                                                OfflineAdvancementUtils.grant(uuid, actual)
+                                            } else {
+                                                OfflineAdvancementUtils.revoke(uuid, actual)
+                                            }
+                                        }
+                                    }
+                                } catch (npe: NullPointerException) {
+                                    it.source.sendError(
+                                        LiteralText(
+                                            "Could not load data for that user!"
+                                        ).formatted(Formatting.RED)
+                                    )
+                                }
                             }
                         }
                     }

@@ -57,7 +57,8 @@ class NBTScreenHandlerFactory(
             if (state.page > 0) {
                 addEntry(
                     0,
-                    Items.PLAYER_HEAD.guiStack("Last Page").applySkull(TexturingConstants.BACK_TEXTURE, TexturingConstants.BACK_ID)
+                    Items.PLAYER_HEAD.guiStack("Last Page")
+                        .applySkull(TexturingConstants.BACK_TEXTURE, TexturingConstants.BACK_ID)
                 ) { _, _ ->
                     state.page -= 1
                     rebuild()
@@ -84,7 +85,10 @@ class NBTScreenHandlerFactory(
             }
 
             // Up / parent
-            addEntry(3, Items.PLAYER_HEAD.guiStack("Up/Parent").applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)) { _, _ ->
+            addEntry(3,
+                Items.PLAYER_HEAD.guiStack("Up/Parent")
+                    .applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)
+            ) { _, _ ->
                 state.keyStack.removeLastOrNull()
                 state.page = 0
                 rebuild()
@@ -119,7 +123,8 @@ class NBTScreenHandlerFactory(
             if (allowEditing) {
                 addEntry(
                     6,
-                    Items.PLAYER_HEAD.guiStack("Add Tag/Entry").applySkull(TexturingConstants.PLUS_TEXTURE, TexturingConstants.PLUS_ID)
+                    Items.PLAYER_HEAD.guiStack("Add Tag/Entry")
+                        .applySkull(TexturingConstants.PLUS_TEXTURE, TexturingConstants.PLUS_ID)
                 ) { _, _ ->
                     rebuild()
                 }
@@ -129,7 +134,8 @@ class NBTScreenHandlerFactory(
             if (state.getAvailableKeys().size - ((state.page + 1) * NBTMenuState.PER_PAGE) > 0) {
                 addEntry(
                     8,
-                    Items.PLAYER_HEAD.guiStack("Next Page").applySkull(TexturingConstants.NEXT_TEXTURE, TexturingConstants.NEXT_ID)
+                    Items.PLAYER_HEAD.guiStack("Next Page")
+                        .applySkull(TexturingConstants.NEXT_TEXTURE, TexturingConstants.NEXT_ID)
                 ) { _, _ ->
                     state.page += 1
                     rebuild()
@@ -166,7 +172,10 @@ class NBTScreenHandlerFactory(
     ): ItemActionMap<NBTMenuState> {
         val actionMap = ItemActionMap<NBTMenuState> {
             // Cancel
-            addEntry(0, Items.PLAYER_HEAD.guiStack("Cancel").applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)) { _, _ ->
+            addEntry(0,
+                Items.PLAYER_HEAD.guiStack("Cancel")
+                    .applySkull(TexturingConstants.OUT_TEXTURE, TexturingConstants.OUT_ID)
+            ) { _, _ ->
                 state.page = 0
                 rebuild()
             }
