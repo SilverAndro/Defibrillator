@@ -9,6 +9,7 @@ package mc.defibrillator
 import com.github.p03w.aegis.*
 import com.mojang.brigadier.CommandDispatcher
 import mc.defibrillator.command.OfflinePlayerSuggester
+import mc.defibrillator.dimension.EmptyDimension
 import mc.defibrillator.gui.data.AdvancementMenuState
 import mc.defibrillator.gui.data.NBTMenuState
 import mc.defibrillator.gui.util.openAdvancementGui
@@ -18,6 +19,7 @@ import me.basiqueevangelist.nevseti.OfflineAdvancementUtils
 import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache
 import me.basiqueevangelist.nevseti.nbt.CompoundTagView
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.MinecraftServer
@@ -29,6 +31,8 @@ import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Util
+import net.minecraft.util.math.Vec3d
+import net.minecraft.world.TeleportTarget
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -44,6 +48,24 @@ object EventHandlers {
                 Int.MAX_VALUE,
                 it.playerScreenHandler.method_29281()
             )
+        }
+
+        val server = world.server
+        val emptyWorld: ServerWorld? = server.getWorld(EmptyDimension.WORLD_KEY)
+        if (world == emptyWorld) {
+            val toRespawn = world.players.filter { true /* TODO: Check if can access */ }
+            toRespawn.forEach {
+                FabricDimensions.teleport(
+                    it,
+                    server.getWorld(it.spawnPointDimension),
+                    TeleportTarget(
+                        Vec3d.ofCenter(it.spawnPointPosition),
+                        Vec3d.ZERO,
+                        0f,
+                        0f
+                    )
+                )
+            }
         }
     }
 
@@ -339,6 +361,15 @@ object EventHandlers {
         literal("debug") {
             requires {
                 it.hasPermissionLevel(2)
+            }
+            literal("dimension") {
+                literal("join") {
+                    executes(true) {
+                        EmptyDimension.join(it)
+                    }
+                }
+                literal("permit") {}
+                literal("deny") {}
             }
             literal("input") {
                 executes {

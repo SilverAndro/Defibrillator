@@ -8,6 +8,7 @@ package mc.defibrillator
 
 import com.mojang.brigadier.CommandDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import mc.defibrillator.dimension.EmptyDimension
 import mc.microconfig.MicroConfig
 import me.basiqueevangelist.nevseti.OfflineDataChanged
 import net.fabricmc.api.ModInitializer
@@ -34,6 +35,9 @@ class Defibrillator : ModInitializer {
         CommandRegistrationCallback.EVENT.register { dispatcher: CommandDispatcher<ServerCommandSource>, _ ->
             EventHandlers.registerMainCommand(dispatcher)
         }
+
+        // Add dimension
+        EmptyDimension.register()
     }
 
     companion object {

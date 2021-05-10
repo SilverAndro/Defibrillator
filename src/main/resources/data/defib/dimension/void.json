@@ -1,0 +1,21 @@
+{
+  "type": "defib:void_type",
+  "generator": {
+    "type": "minecraft:flat",
+    "seed": 389952768,
+    "settings": {
+      "biome": "minecraft:the_void",
+      "lakes": false,
+      "features": false,
+      "layers": [
+        {
+          "block": "minecraft:air",
+          "height": 1
+        }
+      ],
+      "structures": {
+        "structures": {}
+      }
+    }
+  }
+}

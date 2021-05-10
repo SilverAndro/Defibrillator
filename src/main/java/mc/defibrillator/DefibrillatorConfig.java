@@ -10,7 +10,7 @@ import mc.microconfig.Comment;
 import mc.microconfig.ConfigData;
 
 public class DefibrillatorConfig implements ConfigData {
-    @Comment("If Defibrillator should re-throw async errors to force the main server to crash\nNote that this can lead to strange de-syncs or even worse crashes")
+    @Comment("If Defibrillator should re-throw async errors to force the main server to crash\nNote that this can lead to strange de-syncs or even worse crashes if disabled")
     public boolean rethrowAsyncErrors = true;
     
     @Comment("If the \"Number\" option should be shown instead of the specific tag options")
