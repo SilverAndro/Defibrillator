@@ -419,10 +419,32 @@ object EventHandlers {
                 }
                 literal("list") {
                     executes {
+                        // NBT Editing
+                        it.source.sendFeedback(LiteralText("NBT Editing:"), false)
                         if (DefibState.activeNBTSessions.isEmpty()) {
                             it.source.sendFeedback(LiteralText("No active sessions"), false)
                         } else {
                             DefibState.activeNBTSessions.forEach { uuid, playerEntity, _ ->
+                                it.source.sendFeedback(
+                                    (playerEntity.displayName as MutableText)
+                                        .append(" -> ")
+                                        .append(
+                                            copyableText(
+                                                uuid.toString(),
+                                                OfflineNameCache.INSTANCE.getNameFromUUID(uuid)
+                                            )
+                                        ),
+                                    false
+                                )
+                            }
+                        }
+
+                        // Advancement Editing
+                        it.source.sendFeedback(LiteralText("Advancement Editing:"), false)
+                        if (DefibState.activeAdvancementSessions.isEmpty()) {
+                            it.source.sendFeedback(LiteralText("No active sessions"), false)
+                        } else {
+                            DefibState.activeAdvancementSessions.forEach { uuid, playerEntity, _ ->
                                 it.source.sendFeedback(
                                     (playerEntity.displayName as MutableText)
                                         .append(" -> ")
