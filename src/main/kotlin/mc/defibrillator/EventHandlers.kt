@@ -330,26 +330,40 @@ object EventHandlers {
                                     val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
                                         it.getString("playerData")
                                     )
-                                    openAdvancementGui(
-                                        it.source.player,
-                                        LiteralText(it.getString("playerData"))
-                                            .append(LiteralText("'s Advancements")),
-                                        AdvancementMenuState(
-                                            uuid,
-                                            it.source.player
-                                        ),
-                                        true
-                                    ) { state ->
-                                        if (state.suppressOnClose.get().not()) {
-                                            state.overrides.forEach { (id, state) ->
-                                                val actual = it.source.player.server.advancementLoader[id]
-                                                if (state) {
-                                                    OfflineAdvancementUtils.grant(uuid, actual)
-                                                } else {
-                                                    OfflineAdvancementUtils.revoke(uuid, actual)
+                                    if (!DefibState.activeAdvancementSessions.contains(uuid)) {
+                                        val state = openAdvancementGui(
+                                            it.source.player,
+                                            LiteralText(it.getString("playerData"))
+                                                .append(LiteralText("'s Advancements")),
+                                            AdvancementMenuState(
+                                                uuid,
+                                                it.source.player
+                                            ),
+                                            true
+                                        ) { state ->
+                                            if (state.suppressOnClose.get().not()) {
+                                                state.overrides.forEach { (id, state) ->
+                                                    val actual = it.source.player.server.advancementLoader[id]
+                                                    if (state) {
+                                                        OfflineAdvancementUtils.grant(uuid, actual)
+                                                    } else {
+                                                        OfflineAdvancementUtils.revoke(uuid, actual)
+                                                    }
                                                 }
                                             }
                                         }
+
+                                        DefibState.activeAdvancementSessions.set(
+                                            uuid,
+                                            it.source.player,
+                                            state
+                                        )
+                                    } else {
+                                        it.source.sendError(
+                                            LiteralText(
+                                                "${DefibState.activeAdvancementSessions[uuid].first} already has a session open for that uuid!"
+                                            ).formatted(Formatting.RED)
+                                        )
                                     }
                                 } catch (npe: NullPointerException) {
                                     it.source.sendError(
