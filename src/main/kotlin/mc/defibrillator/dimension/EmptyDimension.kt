@@ -43,7 +43,6 @@ object EmptyDimension {
 
     fun join(context: CommandContext<ServerCommandSource>): Int {
         val player = context.source.player
-        val serverWorld = player.serverWorld
         val modWorld: ServerWorld = context.source.minecraftServer.getWorld(WORLD_KEY)!!
 
         val target = TeleportTarget(Vec3d(0.5, 101.0, 0.5), Vec3d.ZERO, 0.0F, 0.0F)

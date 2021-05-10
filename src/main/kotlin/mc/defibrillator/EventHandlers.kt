@@ -53,7 +53,11 @@ object EventHandlers {
         val server = world.server
         val emptyWorld: ServerWorld? = server.getWorld(EmptyDimension.WORLD_KEY)
         if (world == emptyWorld) {
-            val toRespawn = world.players.filter { true /* TODO: Check if can access */ }
+            val toRespawn = world.players.filterNot {
+                DefibState.activeChunkSessions.any { uuid, _, mutableList ->
+                    uuid == it.uuid || mutableList.contains(it.uuid)
+                }
+            }
             toRespawn.forEach {
                 FabricDimensions.teleport(
                     it,
@@ -64,6 +68,11 @@ object EventHandlers {
                         0f,
                         0f
                     )
+                )
+
+                it.sendSystemMessage(
+                    LiteralText("That dimension is restricted!").formatted(Formatting.BOLD).formatted(Formatting.RED),
+                    Util.NIL_UUID
                 )
             }
         }
@@ -363,13 +372,21 @@ object EventHandlers {
                 it.hasPermissionLevel(2)
             }
             literal("dimension") {
-                literal("join") {
+                literal("join_session") {
                     executes(true) {
                         EmptyDimension.join(it)
                     }
                 }
-                literal("permit") {}
-                literal("deny") {}
+                literal("open_session") {
+                    executes {
+                        DefibState.activeChunkSessions.set(it.source.player.uuid, false, mutableListOf())
+                    }
+                }
+                literal("close_session") {
+                    executes {
+                        DefibState.activeChunkSessions.remove(it.source.player.uuid)
+                    }
+                }
             }
             literal("input") {
                 executes {

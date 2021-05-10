@@ -44,8 +44,8 @@ dependencies {
     include 'com.github.BasiqueEvangelist:ne-v-seti:-SNAPSHOT'
 
     // QueCee
-    modImplementation 'com.github.p03w:quecee:1.0.2'
-    include 'com.github.p03w:quecee:1.0.2'
+    modImplementation 'com.github.p03w:quecee:1.0.3'
+    include 'com.github.p03w:quecee:1.0.3'
 }
 
 // Licenser

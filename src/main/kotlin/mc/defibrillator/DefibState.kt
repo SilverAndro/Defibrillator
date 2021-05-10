@@ -24,6 +24,9 @@ object DefibState {
     val activeNBTSessions: DualHashMap<UUID, ServerPlayerEntity, NBTMenuState> = DualHashMap()
     val activeAdvancementSessions: DualHashMap<UUID, ServerPlayerEntity, AdvancementMenuState> = DualHashMap()
 
+    // TODO: Replace Boolean with a chunk reference
+    val activeChunkSessions: DualHashMap<UUID, Boolean, MutableList<UUID>> = DualHashMap()
+
     @JvmStatic
     internal lateinit var serverInstance: MinecraftServer
 }
