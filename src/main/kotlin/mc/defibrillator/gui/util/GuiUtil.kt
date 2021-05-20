@@ -82,7 +82,7 @@ fun openAdvancementGui(
 fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) -> Unit) {
     state.suppressOnClose.set(true)
 
-    GlobalScope.launch(Defibrillator.crashHandler) {
+    DefibState.coroutineScope.launch(Defibrillator.crashHandler) {
         try {
             state.player.closeHandledScreen()
             state.player.sendMessage(LiteralText("Type in chat for $forMessage"), false)

@@ -6,12 +6,15 @@
 
 package mc.defibrillator
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import mc.defibrillator.gui.data.AdvancementMenuState
 import mc.defibrillator.gui.data.NBTMenuState
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import org.github.p03w.quecee.util.DualHashMap
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 object DefibState {
     @JvmField
@@ -24,9 +27,10 @@ object DefibState {
     val activeNBTSessions: DualHashMap<UUID, ServerPlayerEntity, NBTMenuState> = DualHashMap()
     val activeAdvancementSessions: DualHashMap<UUID, ServerPlayerEntity, AdvancementMenuState> = DualHashMap()
 
+    val coroutineScope: CoroutineScope = MainScope()
+
     // TODO: Replace Boolean with a chunk reference
     val activeChunkSessions: DualHashMap<UUID, Boolean, MutableList<UUID>> = DualHashMap()
 
-    @JvmStatic
     internal lateinit var serverInstance: MinecraftServer
 }

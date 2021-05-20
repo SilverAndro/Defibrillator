@@ -25,6 +25,9 @@ class Defibrillator : ModInitializer {
         // Grab the server on start
         ServerLifecycleEvents.SERVER_STARTED.register(EventHandlers::onServerStarted)
 
+        // Clean up awaits and state on close
+        ServerLifecycleEvents.SERVER_STOPPING.register(EventHandlers::onServerClosed)
+
         // Remove GUI items from players
         ServerTickEvents.END_WORLD_TICK.register(EventHandlers::onWorldEndTick)
 

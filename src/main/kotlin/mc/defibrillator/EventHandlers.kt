@@ -8,6 +8,8 @@ package mc.defibrillator
 
 import com.github.p03w.aegis.*
 import com.mojang.brigadier.CommandDispatcher
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
 import mc.defibrillator.command.OfflinePlayerSuggester
 import mc.defibrillator.dimension.EmptyDimension
 import mc.defibrillator.gui.data.AdvancementMenuState
@@ -39,6 +41,20 @@ import kotlin.time.ExperimentalTime
 object EventHandlers {
     fun onServerStarted(server: MinecraftServer) {
         DefibState.serverInstance = server
+    }
+
+    fun onServerClosed(server: MinecraftServer) {
+        // Any jobs we dispatched
+        DefibState.coroutineScope.cancel(CancellationException("Server closing"))
+
+        // Active sessions go bye bye
+        DefibState.activeAdvancementSessions.clear()
+        DefibState.activeChunkSessions.clear()
+        DefibState.activeNBTSessions.clear()
+
+        // No more awaiting or reading input
+        DefibState.awaitingInput.clear()
+        DefibState.readInput.clear()
     }
 
     fun onWorldEndTick(world: ServerWorld) {
