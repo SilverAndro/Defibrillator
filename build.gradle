@@ -16,6 +16,14 @@ repositories {
     maven {
         url 'https://jitpack.io'
     }
+    maven {
+        name = 'Ladysnake Mods'
+        url = 'https://ladysnake.jfrog.io/artifactory/mods'
+        content {
+            includeGroup 'io.github.ladysnake'
+            includeGroupByRegex 'io\\.github\\.onyxstudios.*'
+        }
+    }
     mavenLocal()
 }
 
@@ -46,6 +54,10 @@ dependencies {
     // QueCee
     modImplementation 'com.github.p03w:quecee:1.0.3'
     include 'com.github.p03w:quecee:1.0.3'
+
+    // Player Ability Lib
+    modImplementation "io.github.ladysnake:PlayerAbilityLib:1.2.2"
+    include "io.github.ladysnake:PlayerAbilityLib:1.2.2"
 }
 
 // Licenser

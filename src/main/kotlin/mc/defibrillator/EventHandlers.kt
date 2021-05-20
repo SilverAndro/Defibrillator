@@ -8,6 +8,7 @@ package mc.defibrillator
 
 import com.github.p03w.aegis.*
 import com.mojang.brigadier.CommandDispatcher
+import io.github.ladysnake.pal.VanillaAbilities
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import mc.defibrillator.command.OfflinePlayerSuggester
@@ -22,6 +23,9 @@ import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache
 import me.basiqueevangelist.nevseti.nbt.CompoundTagView
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions
+import net.minecraft.block.BlockState
+import net.minecraft.block.entity.BlockEntity
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.MinecraftServer
@@ -33,8 +37,10 @@ import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
 import net.minecraft.util.Util
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.TeleportTarget
+import net.minecraft.world.World
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -58,16 +64,26 @@ object EventHandlers {
     }
 
     fun onWorldEndTick(world: ServerWorld) {
+        val server = world.server
+        val emptyWorld: ServerWorld? = server.getWorld(EmptyDimension.WORLD_KEY)
+
         world.players.forEach {
             it.inventory.remove(
                 { stack -> stack.tag?.contains("defib-DELETE") ?: false },
                 Int.MAX_VALUE,
                 it.playerScreenHandler.method_29281()
             )
+
+            // Stop limiting world modification if they are no longer in edit world
+            if (Defibrillator.canModifyWorldAbility.grants(it, VanillaAbilities.LIMIT_WORLD_MODIFICATIONS)) {
+                if (world != emptyWorld) {
+                    Defibrillator.canModifyWorldAbility.revokeFrom(it, VanillaAbilities.LIMIT_WORLD_MODIFICATIONS)
+                }
+            } else if (world == emptyWorld) {
+                Defibrillator.canModifyWorldAbility.grantTo(it, VanillaAbilities.LIMIT_WORLD_MODIFICATIONS)
+            }
         }
 
-        val server = world.server
-        val emptyWorld: ServerWorld? = server.getWorld(EmptyDimension.WORLD_KEY)
         if (world == emptyWorld) {
             val toRespawn = world.players.filterNot {
                 DefibState.activeChunkSessions.any { uuid, _, mutableList ->
@@ -87,11 +103,16 @@ object EventHandlers {
                 )
 
                 it.sendSystemMessage(
-                    LiteralText("That dimension is restricted!").formatted(Formatting.BOLD).formatted(Formatting.RED),
+                    LiteralText("That dimension is restricted!").formatted(Formatting.BOLD)
+                        .formatted(Formatting.RED),
                     Util.NIL_UUID
                 )
             }
         }
+    }
+
+    fun onBeforeBreakBlock(world: World, playerEntity: PlayerEntity, blockPos: BlockPos, blockState: BlockState, blockEntity: BlockEntity?): Boolean {
+        return !Defibrillator.canModifyWorldAbility.grants(playerEntity, VanillaAbilities.LIMIT_WORLD_MODIFICATIONS)
     }
 
     @ExperimentalTime
