@@ -8,6 +8,7 @@ package mc.defibrillator
 
 import com.github.p03w.aegis.*
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.context.CommandContext
 import io.github.ladysnake.pal.VanillaAbilities
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
@@ -25,6 +26,8 @@ import me.basiqueevangelist.nevseti.nbt.CompoundTagView
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions
 import net.minecraft.block.BlockState
 import net.minecraft.block.entity.BlockEntity
+import net.minecraft.command.argument.EntityArgumentType
+import net.minecraft.entity.EntityType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
@@ -33,6 +36,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.text.MutableText
+import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Hand
@@ -44,6 +48,7 @@ import net.minecraft.world.World
 import java.util.*
 import kotlin.time.ExperimentalTime
 
+@Suppress("UNUSED_PARAMETER")
 object EventHandlers {
     fun onServerStarted(server: MinecraftServer) {
         DefibState.serverInstance = server
@@ -129,7 +134,7 @@ object EventHandlers {
     }
 
     fun registerMainCommand(dispatcher: CommandDispatcher<ServerCommandSource>) {
-        dispatcher.register(aegisCommand("defib") {
+        dispatcher.register("defib") {
             requires {
                 it.hasPermissionLevel(Defibrillator.config.commands.minimumRequiredLevel)
             }
@@ -142,44 +147,13 @@ object EventHandlers {
                 }
                 literal("item") {
                     executes {
-                        openNBTGui(
-                            it.source.player,
-                            LiteralText("Held Item (VIEW)"),
-                            NBTMenuState(
-                                it.source.player.mainHandStack.toTag(CompoundTag()),
-                                Util.NIL_UUID,
-                                it.source.player
-                            ),
-                            false
-                        ) { }
+                        openViewItem(it)
                     }
                 }
                 literal("block") {
                     blockPos("blockPos") {
-                        executes(debug = true) {
-                            val pos = it.getBlockPos("blockPos")
-                            val world = it.source.world
-                            val entity = world.getBlockEntity(pos)
-                            if (entity != null) {
-                                val tag = entity.toTag(CompoundTag())
-                                openNBTGui(
-                                    it.source.player,
-                                    TranslatableText(world.getBlockState(pos).block.translationKey)
-                                        .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}] (VIEW)")),
-                                    NBTMenuState(
-                                        tag,
-                                        Util.NIL_UUID,
-                                        it.source.player
-                                    ),
-                                    false
-                                ) { }
-                            } else {
-                                it.source.sendError(
-                                    LiteralText(
-                                        "No block entity at $pos"
-                                    ).formatted(Formatting.RED)
-                                )
-                            }
+                        executes {
+                            openViewBlock(it)
                         }
                     }
                 }
@@ -187,58 +161,24 @@ object EventHandlers {
                     literal("data") {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
-                            executes(debug = true) {
-                                try {
-                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                        it.getString("playerData")
-                                    )
-                                    openNBTGui(
-                                        it.source.player,
-                                        LiteralText(it.getString("playerData"))
-                                            .append(LiteralText(" (VIEW)")),
-                                        NBTMenuState(
-                                            OfflineDataCache.INSTANCE.get(uuid).copy(),
-                                            uuid,
-                                            it.source.player
-                                        ),
-                                        false
-                                    ) { }
-                                } catch (npe: NullPointerException) {
-                                    it.source.sendError(
-                                        LiteralText(
-                                            "Could not load data for that user!"
-                                        ).formatted(Formatting.RED)
-                                    )
-                                }
+                            executes {
+                                openViewPlayer(it)
                             }
                         }
                     }
-                    literal("advancemnents") {
+                    literal("advancements") {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
-                            executes(debug = true) {
-                                try {
-                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                        it.getString("playerData")
-                                    )
-                                    openAdvancementGui(
-                                        it.source.player,
-                                        LiteralText(it.getString("playerData"))
-                                            .append(LiteralText("'s Advance. (VIEW)")),
-                                        AdvancementMenuState(
-                                            uuid,
-                                            it.source.player
-                                        ),
-                                        false
-                                    ) { }
-                                } catch (npe: NullPointerException) {
-                                    it.source.sendError(
-                                        LiteralText(
-                                            "Could not load data for that user!"
-                                        ).formatted(Formatting.RED)
-                                    )
-                                }
+                            executes {
+                                openViewAdvancements(it)
                             }
+                        }
+                    }
+                }
+                literal("entity") {
+                    entity("entity") {
+                        executes {
+                            openViewEntity(it)
                         }
                     }
                 }
@@ -249,55 +189,13 @@ object EventHandlers {
                 }
                 literal("item") {
                     executes {
-                        openNBTGui(
-                            it.source.player,
-                            LiteralText("Held Item"),
-                            NBTMenuState(
-                                it.source.player.mainHandStack.toTag(CompoundTag()),
-                                Util.NIL_UUID,
-                                it.source.player
-                            )
-                        ) { state ->
-                            if (state.suppressOnClose.get().not()) {
-                                it.source.player.setStackInHand(
-                                    Hand.MAIN_HAND,
-                                    ItemStack.fromTag(state.rootTag)
-                                )
-                                it.source.sendFeedback(LiteralText("Saved item data"), false)
-                            }
-                        }
+                        openEditItem(it)
                     }
                 }
                 literal("block") {
                     blockPos("blockPos") {
-                        executes(debug = true) {
-                            val pos = it.getBlockPos("blockPos")
-                            val world = it.source.world
-                            val entity = world.getBlockEntity(pos)
-                            if (entity != null) {
-                                val tag = entity.toTag(CompoundTag())
-                                openNBTGui(
-                                    it.source.player,
-                                    TranslatableText(world.getBlockState(pos).block.translationKey)
-                                        .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
-                                    NBTMenuState(
-                                        tag,
-                                        Util.NIL_UUID,
-                                        it.source.player
-                                    )
-                                ) { state ->
-                                    if (state.suppressOnClose.get().not()) {
-                                        entity.fromTag(world.getBlockState(pos), state.rootTag)
-                                        it.source.sendFeedback(LiteralText("Saved block data"), false)
-                                    }
-                                }
-                            } else {
-                                it.source.sendError(
-                                    LiteralText(
-                                        "No block entity at $pos"
-                                    ).formatted(Formatting.RED)
-                                )
-                            }
+                        executes {
+                            openEditBlock(it)
                         }
                     }
                 }
@@ -305,116 +203,294 @@ object EventHandlers {
                     literal("data") {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
-                            executes(debug = true) {
-                                try {
-                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                        it.getString("playerData")
-                                    )
-                                    if (!DefibState.activeNBTSessions.contains(uuid)) {
-                                        val state = openNBTGui(
-                                            it.source.player,
-                                            LiteralText(it.getString("playerData")),
-                                            NBTMenuState(
-                                                OfflineDataCache.INSTANCE.get(uuid).copy(),
-                                                uuid,
-                                                it.source.player
-                                            )
-                                        ) { state ->
-                                            if (state.suppressOnClose.get().not()) {
-                                                try {
-                                                    OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
-                                                    it.source.sendFeedback(LiteralText("Saved user data"), true)
-                                                } catch (ex: Exception) {
-                                                    it.source.sendError(
-                                                        LiteralText("Failed to save user data").formatted(
-                                                            Formatting.RED
-                                                        )
-                                                    )
-                                                    ex.printStackTrace()
-                                                } finally {
-                                                    DefibState.activeNBTSessions.remove(uuid)
-                                                }
-                                            }
-                                        }
-
-                                        DefibState.activeNBTSessions.set(
-                                            uuid,
-                                            it.source.player,
-                                            state
-                                        )
-                                    } else {
-                                        it.source.sendError(
-                                            LiteralText(
-                                                "${DefibState.activeNBTSessions[uuid].first.entityName} already has a session open for that uuid!"
-                                            ).formatted(Formatting.RED)
-                                        )
-                                    }
-                                } catch (npe: NullPointerException) {
-                                    it.source.sendError(
-                                        LiteralText(
-                                            "Could not load data for that user!"
-                                        ).formatted(Formatting.RED)
-                                    )
-                                }
+                            executes {
+                                openEditPlayer(it)
                             }
                         }
                     }
-                    literal("advancemnents") {
+                    literal("advancements") {
                         string("playerData") {
                             suggests(OfflinePlayerSuggester()::getSuggestions)
-                            executes(debug = true) {
-                                try {
-                                    val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
-                                        it.getString("playerData")
-                                    )
-                                    if (!DefibState.activeAdvancementSessions.contains(uuid)) {
-                                        val state = openAdvancementGui(
-                                            it.source.player,
-                                            LiteralText(it.getString("playerData"))
-                                                .append(LiteralText("'s Advancements")),
-                                            AdvancementMenuState(
-                                                uuid,
-                                                it.source.player
-                                            ),
-                                            true
-                                        ) { state ->
-                                            if (state.suppressOnClose.get().not()) {
-                                                state.overrides.forEach { (id, state) ->
-                                                    val actual = it.source.player.server.advancementLoader[id]
-                                                    if (state) {
-                                                        OfflineAdvancementUtils.grant(uuid, actual)
-                                                    } else {
-                                                        OfflineAdvancementUtils.revoke(uuid, actual)
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        DefibState.activeAdvancementSessions.set(
-                                            uuid,
-                                            it.source.player,
-                                            state
-                                        )
-                                    } else {
-                                        it.source.sendError(
-                                            LiteralText(
-                                                "${DefibState.activeAdvancementSessions[uuid].first} already has a session open for that uuid!"
-                                            ).formatted(Formatting.RED)
-                                        )
-                                    }
-                                } catch (npe: NullPointerException) {
-                                    it.source.sendError(
-                                        LiteralText(
-                                            "Could not load data for that user!"
-                                        ).formatted(Formatting.RED)
-                                    )
-                                }
+                            executes {
+                                openEditAdvancements(it)
                             }
                         }
                     }
                 }
             }
-        })
+        }
+    }
+
+    /*
+
+    Edit Commands
+
+    */
+
+    private fun openEditAdvancements(it: CommandContext<ServerCommandSource>) {
+        try {
+            val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                it.getString("playerData")
+            )
+            if (!DefibState.activeAdvancementSessions.contains(uuid)) {
+                val state = openAdvancementGui(
+                    it.source.player,
+                    LiteralText(it.getString("playerData"))
+                        .append(LiteralText("'s Advancements")),
+                    AdvancementMenuState(
+                        uuid,
+                        it.source.player
+                    ),
+                    true
+                ) { state ->
+                    if (state.suppressOnClose.get().not()) {
+                        state.overrides.forEach { (id, state) ->
+                            val actual = it.source.player.server.advancementLoader[id]
+                            if (state) {
+                                OfflineAdvancementUtils.grant(uuid, actual)
+                            } else {
+                                OfflineAdvancementUtils.revoke(uuid, actual)
+                            }
+                        }
+                    }
+                }
+
+                DefibState.activeAdvancementSessions.set(
+                    uuid,
+                    it.source.player,
+                    state
+                )
+            } else {
+                it.source.sendError(
+                    LiteralText(
+                        "${DefibState.activeAdvancementSessions[uuid].first} already has a session open for that uuid!"
+                    ).formatted(Formatting.RED)
+                )
+            }
+        } catch (npe: NullPointerException) {
+            it.source.sendError(
+                LiteralText(
+                    "Could not load data for that user!"
+                ).formatted(Formatting.RED)
+            )
+        }
+    }
+
+    private fun openEditPlayer(it: CommandContext<ServerCommandSource>) {
+        try {
+            val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                it.getString("playerData")
+            )
+            if (!DefibState.activeNBTSessions.contains(uuid)) {
+                val state = openNBTGui(
+                    it.source.player,
+                    LiteralText(it.getString("playerData")),
+                    NBTMenuState(
+                        OfflineDataCache.INSTANCE.get(uuid).copy(),
+                        uuid,
+                        it.source.player
+                    )
+                ) { state ->
+                    if (state.suppressOnClose.get().not()) {
+                        try {
+                            OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
+                            it.source.sendFeedback(LiteralText("Saved user data"), true)
+                        } catch (ex: Exception) {
+                            it.source.sendError(
+                                LiteralText("Failed to save user data").formatted(
+                                    Formatting.RED
+                                )
+                            )
+                            ex.printStackTrace()
+                        } finally {
+                            DefibState.activeNBTSessions.remove(uuid)
+                        }
+                    }
+                }
+
+                DefibState.activeNBTSessions.set(
+                    uuid,
+                    it.source.player,
+                    state
+                )
+            } else {
+                it.source.sendError(
+                    LiteralText(
+                        "${DefibState.activeNBTSessions[uuid].first.entityName} already has a session open for that uuid!"
+                    ).formatted(Formatting.RED)
+                )
+            }
+        } catch (npe: NullPointerException) {
+            it.source.sendError(
+                LiteralText(
+                    "Could not load data for that user!"
+                ).formatted(Formatting.RED)
+            )
+        }
+    }
+
+    private fun openEditBlock(it: CommandContext<ServerCommandSource>) {
+        val pos = it.getBlockPos("blockPos")
+        val world = it.source.world
+        val entity = world.getBlockEntity(pos)
+        if (entity != null) {
+            val tag = entity.toTag(CompoundTag())
+            openNBTGui(
+                it.source.player,
+                TranslatableText(world.getBlockState(pos).block.translationKey)
+                    .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}]")),
+                NBTMenuState(
+                    tag,
+                    Util.NIL_UUID,
+                    it.source.player
+                )
+            ) { state ->
+                if (state.suppressOnClose.get().not()) {
+                    entity.fromTag(world.getBlockState(pos), state.rootTag)
+                    it.source.sendFeedback(LiteralText("Saved block data"), false)
+                }
+            }
+        } else {
+            it.source.sendError(
+                LiteralText(
+                    "No block entity at $pos"
+                ).formatted(Formatting.RED)
+            )
+        }
+    }
+
+    private fun openEditItem(it: CommandContext<ServerCommandSource>) {
+        openNBTGui(
+            it.source.player,
+            LiteralText("Held Item"),
+            NBTMenuState(
+                it.source.player.mainHandStack.toTag(CompoundTag()),
+                Util.NIL_UUID,
+                it.source.player
+            )
+        ) { state ->
+            if (state.suppressOnClose.get().not()) {
+                it.source.player.setStackInHand(
+                    Hand.MAIN_HAND,
+                    ItemStack.fromTag(state.rootTag)
+                )
+                it.source.sendFeedback(LiteralText("Saved item data"), false)
+            }
+        }
+    }
+
+    /*
+
+    View Commands
+
+    */
+
+    private fun openViewEntity(it: CommandContext<ServerCommandSource>) {
+        val entity = it.getEntity("entity").also { if (it is PlayerEntity) throw EntityArgumentType.NOT_ALLOWED_EXCEPTION.create() }
+
+        val tag = entity.toTag(CompoundTag())
+
+        openNBTGui(
+            it.source.player,
+            ((if (tag.contains("CustomName")) {
+                Text.Serializer.fromJson(tag.getString("CustomName"))
+            } else {
+                TranslatableText("entity.${EntityType.getId(entity.type).toString().replace(':', '.')}")
+            }) ?: LiteralText("[ERROR]")).append(LiteralText(" (VIEW)")),
+            NBTMenuState(
+                tag,
+                Util.NIL_UUID,
+                it.source.player
+            )
+        ) { }
+    }
+
+    private fun openViewAdvancements(it: CommandContext<ServerCommandSource>) {
+        try {
+            val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                it.getString("playerData")
+            )
+            openAdvancementGui(
+                it.source.player,
+                LiteralText(it.getString("playerData"))
+                    .append(LiteralText("'s Advance. (VIEW)")),
+                AdvancementMenuState(
+                    uuid,
+                    it.source.player
+                ),
+                false
+            ) { }
+        } catch (npe: NullPointerException) {
+            it.source.sendError(
+                LiteralText(
+                    "Could not load data for that user!"
+                ).formatted(Formatting.RED)
+            )
+        }
+    }
+
+    private fun openViewPlayer(it: CommandContext<ServerCommandSource>) {
+        try {
+            val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
+                it.getString("playerData")
+            )
+            openNBTGui(
+                it.source.player,
+                LiteralText(it.getString("playerData"))
+                    .append(LiteralText(" (VIEW)")),
+                NBTMenuState(
+                    OfflineDataCache.INSTANCE.get(uuid).copy(),
+                    uuid,
+                    it.source.player
+                ),
+                false
+            ) { }
+        } catch (npe: NullPointerException) {
+            it.source.sendError(
+                LiteralText(
+                    "Could not load data for that user!"
+                ).formatted(Formatting.RED)
+            )
+        }
+    }
+
+    private fun openViewBlock(it: CommandContext<ServerCommandSource>) {
+        val pos = it.getBlockPos("blockPos")
+        val world = it.source.world
+        val entity = world.getBlockEntity(pos)
+        if (entity != null) {
+            val tag = entity.toTag(CompoundTag())
+            openNBTGui(
+                it.source.player,
+                TranslatableText(world.getBlockState(pos).block.translationKey)
+                    .append(LiteralText("[${pos.x}, ${pos.y}, ${pos.z}] (VIEW)")),
+                NBTMenuState(
+                    tag,
+                    Util.NIL_UUID,
+                    it.source.player
+                ),
+                false
+            ) { }
+        } else {
+            it.source.sendError(
+                LiteralText(
+                    "No block entity at $pos"
+                ).formatted(Formatting.RED)
+            )
+        }
+    }
+
+    private fun openViewItem(it: CommandContext<ServerCommandSource>) {
+        openNBTGui(
+            it.source.player,
+            LiteralText("Held Item (VIEW)"),
+            NBTMenuState(
+                it.source.player.mainHandStack.toTag(CompoundTag()),
+                Util.NIL_UUID,
+                it.source.player
+            ),
+            false
+        ) { }
     }
 
     private fun AegisCommandBuilder.attachDebugTree() {
