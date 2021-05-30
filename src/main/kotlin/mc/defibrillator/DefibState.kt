@@ -7,6 +7,7 @@
 package mc.defibrillator
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import mc.defibrillator.gui.data.AdvancementMenuState
 import mc.defibrillator.gui.data.NBTMenuState
@@ -27,7 +28,7 @@ object DefibState {
     val activeNBTSessions: DualHashMap<UUID, ServerPlayerEntity, NBTMenuState> = DualHashMap()
     val activeAdvancementSessions: DualHashMap<UUID, ServerPlayerEntity, AdvancementMenuState> = DualHashMap()
 
-    val coroutineScope: CoroutineScope = MainScope()
+    val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
     // TODO: Replace Boolean with a chunk reference
     val activeChunkSessions: DualHashMap<UUID, Boolean, MutableList<UUID>> = DualHashMap()

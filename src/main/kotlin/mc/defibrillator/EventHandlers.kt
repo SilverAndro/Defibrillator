@@ -116,7 +116,13 @@ object EventHandlers {
         }
     }
 
-    fun onBeforeBreakBlock(world: World, playerEntity: PlayerEntity, blockPos: BlockPos, blockState: BlockState, blockEntity: BlockEntity?): Boolean {
+    fun onBeforeBreakBlock(
+        world: World,
+        playerEntity: PlayerEntity,
+        blockPos: BlockPos,
+        blockState: BlockState,
+        blockEntity: BlockEntity?
+    ): Boolean {
         return !Defibrillator.canModifyWorldAbility.grants(playerEntity, VanillaAbilities.LIMIT_WORLD_MODIFICATIONS)
     }
 
@@ -217,6 +223,13 @@ object EventHandlers {
                         }
                     }
                 }
+                literal("entity") {
+                    entity("entity") {
+                        executes {
+                            openEditEntity(it)
+                        }
+                    }
+                }
             }
         }
     }
@@ -226,6 +239,43 @@ object EventHandlers {
     Edit Commands
 
     */
+
+    private fun openEditEntity(it: CommandContext<ServerCommandSource>) {
+        val entity = it.getEntity("entity")
+            .also { if (it is PlayerEntity) throw EntityArgumentType.NOT_ALLOWED_EXCEPTION.create() }
+        val tag = entity.toTag(CompoundTag())
+
+        if (DefibState.activeNBTSessions.contains(entity.uuid)) {
+            it.source.sendError(
+                LiteralText(
+                    "${DefibState.activeNBTSessions[entity.uuid].first.entityName} already has a session open for that uuid!"
+                ).formatted(Formatting.RED)
+            )
+            return
+        }
+
+        val state = openNBTGui(
+            it.source.player,
+            ((if (tag.contains("CustomName"))
+                Text.Serializer.fromJson(tag.getString("CustomName"))
+            else TranslatableText("entity.${EntityType.getId(entity.type).toString().replace(':', '.')}"))
+                ?: LiteralText("[ERROR]")),
+            NBTMenuState(
+                tag,
+                Util.NIL_UUID,
+                it.source.player
+            )
+        ) {
+            DefibState.activeNBTSessions.remove(entity.uuid)
+            entity.fromTag(it.rootTag)
+        }
+
+        DefibState.activeNBTSessions.set(
+            entity.uuid,
+            it.source.player,
+            state
+        )
+    }
 
     private fun openEditAdvancements(it: CommandContext<ServerCommandSource>) {
         try {
@@ -281,45 +331,47 @@ object EventHandlers {
             val uuid = OfflineNameCache.INSTANCE.getUUIDFromName(
                 it.getString("playerData")
             )
-            if (!DefibState.activeNBTSessions.contains(uuid)) {
-                val state = openNBTGui(
-                    it.source.player,
-                    LiteralText(it.getString("playerData")),
-                    NBTMenuState(
-                        OfflineDataCache.INSTANCE.get(uuid).copy(),
-                        uuid,
-                        it.source.player
-                    )
-                ) { state ->
-                    if (state.suppressOnClose.get().not()) {
-                        try {
-                            OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
-                            it.source.sendFeedback(LiteralText("Saved user data"), true)
-                        } catch (ex: Exception) {
-                            it.source.sendError(
-                                LiteralText("Failed to save user data").formatted(
-                                    Formatting.RED
-                                )
-                            )
-                            ex.printStackTrace()
-                        } finally {
-                            DefibState.activeNBTSessions.remove(uuid)
-                        }
-                    }
-                }
 
-                DefibState.activeNBTSessions.set(
-                    uuid,
-                    it.source.player,
-                    state
-                )
-            } else {
+            if (DefibState.activeNBTSessions.contains(uuid)) {
                 it.source.sendError(
                     LiteralText(
                         "${DefibState.activeNBTSessions[uuid].first.entityName} already has a session open for that uuid!"
                     ).formatted(Formatting.RED)
                 )
+                return
             }
+
+            val state = openNBTGui(
+                it.source.player,
+                LiteralText(it.getString("playerData")),
+                NBTMenuState(
+                    OfflineDataCache.INSTANCE.get(uuid).copy(),
+                    uuid,
+                    it.source.player
+                )
+            ) { state ->
+                if (state.suppressOnClose.get().not()) {
+                    try {
+                        OfflineDataCache.INSTANCE.save(uuid, state.rootTag)
+                        it.source.sendFeedback(LiteralText("Saved user data"), true)
+                    } catch (ex: Exception) {
+                        it.source.sendError(
+                            LiteralText("Failed to save user data").formatted(
+                                Formatting.RED
+                            )
+                        )
+                        ex.printStackTrace()
+                    } finally {
+                        DefibState.activeNBTSessions.remove(uuid)
+                    }
+                }
+            }
+
+            DefibState.activeNBTSessions.set(
+                uuid,
+                it.source.player,
+                state
+            )
         } catch (npe: NullPointerException) {
             it.source.sendError(
                 LiteralText(
@@ -386,7 +438,8 @@ object EventHandlers {
     */
 
     private fun openViewEntity(it: CommandContext<ServerCommandSource>) {
-        val entity = it.getEntity("entity").also { if (it is PlayerEntity) throw EntityArgumentType.NOT_ALLOWED_EXCEPTION.create() }
+        val entity = it.getEntity("entity")
+            .also { if (it is PlayerEntity) throw EntityArgumentType.NOT_ALLOWED_EXCEPTION.create() }
 
         val tag = entity.toTag(CompoundTag())
 
@@ -402,7 +455,7 @@ object EventHandlers {
                 Util.NIL_UUID,
                 it.source.player
             )
-        ) { }
+        )
     }
 
     private fun openViewAdvancements(it: CommandContext<ServerCommandSource>) {
@@ -419,7 +472,7 @@ object EventHandlers {
                     it.source.player
                 ),
                 false
-            ) { }
+            )
         } catch (npe: NullPointerException) {
             it.source.sendError(
                 LiteralText(
@@ -470,7 +523,7 @@ object EventHandlers {
                     it.source.player
                 ),
                 false
-            ) { }
+            )
         } else {
             it.source.sendError(
                 LiteralText(
@@ -490,7 +543,7 @@ object EventHandlers {
                 it.source.player
             ),
             false
-        ) { }
+        )
     }
 
     private fun AegisCommandBuilder.attachDebugTree() {
@@ -500,7 +553,7 @@ object EventHandlers {
             }
             literal("dimension") {
                 literal("join_session") {
-                    executes(true) {
+                    executes {
                         EmptyDimension.join(it)
                     }
                 }

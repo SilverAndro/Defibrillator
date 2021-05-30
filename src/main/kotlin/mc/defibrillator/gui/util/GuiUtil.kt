@@ -28,6 +28,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.github.p03w.quecee.api.util.guiStack
 import org.github.p03w.quecee.util.GuiAction
+import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
@@ -46,7 +47,7 @@ fun openNBTGui(
     title: Text,
     state: NBTMenuState,
     allowEditing: Boolean = true,
-    onClose: (NBTMenuState) -> Unit
+    onClose: (NBTMenuState) -> Unit = {}
 ): NBTMenuState {
     val factory = NBTScreenHandlerFactory(player, title, state, allowEditing, onClose)
     player.openHandledScreen(factory)
@@ -67,7 +68,7 @@ fun openAdvancementGui(
     title: Text,
     state: AdvancementMenuState,
     allowEditing: Boolean = true,
-    onClose: (AdvancementMenuState) -> Unit
+    onClose: (AdvancementMenuState) -> Unit = {}
 ): AdvancementMenuState {
     val factory = AdvancementScreenHandlerFactory(player, title, state, allowEditing, onClose)
     player.openHandledScreen(factory)
@@ -90,7 +91,7 @@ fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) 
             val topRoutine = this
 
             launch(Defibrillator.crashHandler) {
-                delay(30.toDuration(DurationUnit.SECONDS))
+                delay(Duration.seconds(30))
                 state.player.sendMessage(LiteralText("Timed out!").formatted(Formatting.RED), false)
                 DefibState.awaitingInput.remove(state.player)
                 topRoutine.cancel()
@@ -104,7 +105,7 @@ fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) 
             }
 
             while (isActive) {
-                delay(10L)
+                delay(Duration.milliseconds(10))
             }
         } catch (err: Throwable) {
             if (err is SafeCoroutineExit) {
