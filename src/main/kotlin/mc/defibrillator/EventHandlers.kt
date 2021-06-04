@@ -19,6 +19,7 @@ import mc.defibrillator.gui.data.NBTMenuState
 import mc.defibrillator.gui.util.openAdvancementGui
 import mc.defibrillator.gui.util.openNBTGui
 import mc.defibrillator.util.copyableText
+import mc.defibrillator.util.toNBT
 import me.basiqueevangelist.nevseti.OfflineAdvancementUtils
 import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache
@@ -30,7 +31,6 @@ import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
@@ -76,7 +76,7 @@ object EventHandlers {
             it.inventory.remove(
                 { stack -> stack.tag?.contains("defib-DELETE") ?: false },
                 Int.MAX_VALUE,
-                it.playerScreenHandler.method_29281()
+                it.playerScreenHandler.craftingInput
             )
 
             // Stop limiting world modification if they are no longer in edit world
@@ -243,7 +243,7 @@ object EventHandlers {
     private fun openEditEntity(it: CommandContext<ServerCommandSource>) {
         val entity = it.getEntity("entity")
             .also { if (it is PlayerEntity) throw EntityArgumentType.NOT_ALLOWED_EXCEPTION.create() }
-        val tag = entity.toTag(CompoundTag())
+        val tag = entity.toNBT()
 
         if (DefibState.activeNBTSessions.contains(entity.uuid)) {
             it.source.sendError(
@@ -267,7 +267,7 @@ object EventHandlers {
             )
         ) {
             DefibState.activeNBTSessions.remove(entity.uuid)
-            entity.fromTag(it.rootTag)
+            entity.readNbt(it.rootTag)
         }
 
         DefibState.activeNBTSessions.set(
@@ -386,7 +386,7 @@ object EventHandlers {
         val world = it.source.world
         val entity = world.getBlockEntity(pos)
         if (entity != null) {
-            val tag = entity.toTag(CompoundTag())
+            val tag = entity.toNBT()
             openNBTGui(
                 it.source.player,
                 TranslatableText(world.getBlockState(pos).block.translationKey)
@@ -398,7 +398,7 @@ object EventHandlers {
                 )
             ) { state ->
                 if (state.suppressOnClose.get().not()) {
-                    entity.fromTag(world.getBlockState(pos), state.rootTag)
+                    entity.readNbt(state.rootTag)
                     it.source.sendFeedback(LiteralText("Saved block data"), false)
                 }
             }
@@ -416,7 +416,7 @@ object EventHandlers {
             it.source.player,
             LiteralText("Held Item"),
             NBTMenuState(
-                it.source.player.mainHandStack.toTag(CompoundTag()),
+                it.source.player.mainHandStack.toNBT(),
                 Util.NIL_UUID,
                 it.source.player
             )
@@ -424,7 +424,7 @@ object EventHandlers {
             if (state.suppressOnClose.get().not()) {
                 it.source.player.setStackInHand(
                     Hand.MAIN_HAND,
-                    ItemStack.fromTag(state.rootTag)
+                    ItemStack.fromNbt(state.rootTag)
                 )
                 it.source.sendFeedback(LiteralText("Saved item data"), false)
             }
@@ -441,7 +441,7 @@ object EventHandlers {
         val entity = it.getEntity("entity")
             .also { if (it is PlayerEntity) throw EntityArgumentType.NOT_ALLOWED_EXCEPTION.create() }
 
-        val tag = entity.toTag(CompoundTag())
+        val tag = entity.toNBT()
 
         openNBTGui(
             it.source.player,
@@ -512,7 +512,7 @@ object EventHandlers {
         val world = it.source.world
         val entity = world.getBlockEntity(pos)
         if (entity != null) {
-            val tag = entity.toTag(CompoundTag())
+            val tag = entity.toNBT()
             openNBTGui(
                 it.source.player,
                 TranslatableText(world.getBlockState(pos).block.translationKey)
@@ -538,7 +538,7 @@ object EventHandlers {
             it.source.player,
             LiteralText("Held Item (VIEW)"),
             NBTMenuState(
-                it.source.player.mainHandStack.toTag(CompoundTag()),
+                it.source.player.mainHandStack.toNBT(),
                 Util.NIL_UUID,
                 it.source.player
             ),

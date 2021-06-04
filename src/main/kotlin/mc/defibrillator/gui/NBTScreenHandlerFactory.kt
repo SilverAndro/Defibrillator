@@ -184,16 +184,16 @@ class NBTScreenHandlerFactory(
                 rebuild()
             }
 
-            fun punchInAndExit(tag: Tag, name: String, state: NBTMenuState) {
+            fun punchInAndExit(tag: NbtElement, name: String, state: NBTMenuState) {
                 when (val active = state.getActiveTag()) {
-                    is CompoundTag -> active.put(name, tag)
-                    is AbstractListTag<*> -> {
-                        if (active.elementType == tag.type || active.elementType == 0.toByte()) {
+                    is NbtCompound -> active.put(name, tag)
+                    is AbstractNbtList<*> -> {
+                        if (active.heldType == tag.type || active.heldType == 0.toByte()) {
                             try {
                                 val index = name.toInt()
-                                active.setTag(index, tag)
+                                active.setElement(index, tag)
                             } catch (ignored: Throwable) {
-                                active.addTag(active.size, tag)
+                                active.setElement(active.size, tag)
                             }
                         }
                     }
@@ -209,7 +209,7 @@ class NBTScreenHandlerFactory(
             val active = state.getActiveTag()
 
             fun canAdd(nbtType: Int): Boolean {
-                return if (active is AbstractListTag<*>) {
+                return if (active is AbstractNbtList<*>) {
                     active.wouldAccept(nbtType)
                 } else {
                     true
@@ -219,35 +219,35 @@ class NBTScreenHandlerFactory(
             if (canAdd(NbtType.COMPOUND))
                 addEntry(index++, Items.SHULKER_BOX.guiStack("Compound Tag")) { _, composite ->
                     getTextEntry(state, "compound name") {
-                        punchInAndExit(CompoundTag(), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtCompound(), it ?: "PLACEHOLDER", composite)
                     }
                 }
 
             if (canAdd(NbtType.LIST))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("List Tag")) { _, composite ->
                     getTextEntry(composite, "list name") {
-                        punchInAndExit(ListTag(), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtList(), it ?: "PLACEHOLDER", composite)
                     }
                 }
 
             if (canAdd(NbtType.INT_ARRAY))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("Int Array Tag")) { _, composite ->
                     getTextEntry(composite, "int array name") {
-                        punchInAndExit(IntArrayTag(listOf()), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtIntArray(listOf()), it ?: "PLACEHOLDER", composite)
                     }
                 }
 
             if (canAdd(NbtType.BYTE_ARRAY))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("Byte Array Tag")) { _, composite ->
                     getTextEntry(composite, "byte array name") {
-                        punchInAndExit(ByteArrayTag(listOf()), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtByteArray(listOf()), it ?: "PLACEHOLDER", composite)
                     }
                 }
 
             if (canAdd(NbtType.LONG_ARRAY))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("Long Array Tag")) { _, composite ->
                     getTextEntry(composite, "long array name") {
-                        punchInAndExit(LongArrayTag(listOf()), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtLongArray(listOf()), it ?: "PLACEHOLDER", composite)
                     }
                 }
 
@@ -263,42 +263,42 @@ class NBTScreenHandlerFactory(
                 if (canAdd(NbtType.BYTE))
                     addEntry(index++, Items.PLAYER_HEAD.guiStack("Byte").asHashtag()) { _, composite ->
                         getDoubleTextEntry(composite, "byte value") { name, value ->
-                            punchInAndExit(ByteTag.of(value.toInt().toByte()), name, composite)
+                            punchInAndExit(NbtByte.of(value.toInt().toByte()), name, composite)
                         }
                     }
 
                 if (canAdd(NbtType.FLOAT))
                     addEntry(index++, Items.PLAYER_HEAD.guiStack("Float").asHashtag()) { _, composite ->
                         getDoubleTextEntry(composite, "float value") { name, value ->
-                            punchInAndExit(FloatTag.of(value.toFloat()), name, composite)
+                            punchInAndExit(NbtFloat.of(value.toFloat()), name, composite)
                         }
                     }
 
                 if (canAdd(NbtType.DOUBLE))
                     addEntry(index++, Items.PLAYER_HEAD.guiStack("Double").asHashtag()) { _, composite ->
                         getDoubleTextEntry(composite, "double value") { name, value ->
-                            punchInAndExit(DoubleTag.of(value.toDouble()), name, composite)
+                            punchInAndExit(NbtDouble.of(value.toDouble()), name, composite)
                         }
                     }
 
                 if (canAdd(NbtType.INT))
                     addEntry(index++, Items.PLAYER_HEAD.guiStack("Int").asHashtag()) { _, composite ->
                         getDoubleTextEntry(composite, "integer value") { name, value ->
-                            punchInAndExit(IntTag.of(value.toInt()), name, composite)
+                            punchInAndExit(NbtInt.of(value.toInt()), name, composite)
                         }
                     }
 
                 if (canAdd(NbtType.LONG))
                     addEntry(index++, Items.PLAYER_HEAD.guiStack("Long").asHashtag()) { _, composite ->
                         getDoubleTextEntry(composite, "long value") { name, value ->
-                            punchInAndExit(LongTag.of(value.toLong()), name, composite)
+                            punchInAndExit(NbtLong.of(value.toLong()), name, composite)
                         }
                     }
 
                 if (canAdd(NbtType.SHORT))
                     addEntry(index++, Items.PLAYER_HEAD.guiStack("Short").asHashtag()) { _, composite ->
                         getDoubleTextEntry(composite, "short value") { name, value ->
-                            punchInAndExit(ShortTag.of(value.toShort()), name, composite)
+                            punchInAndExit(NbtShort.of(value.toShort()), name, composite)
                         }
                     }
             }
@@ -306,7 +306,7 @@ class NBTScreenHandlerFactory(
             if (canAdd(NbtType.STRING))
                 addEntry(index, Items.PAPER.guiStack("String")) { _, composite ->
                     getDoubleTextEntry(composite, "string value") { name, value ->
-                        punchInAndExit(StringTag.of(value), name, composite)
+                        punchInAndExit(NbtString.of(value), name, composite)
                     }
                 }
         }
@@ -337,32 +337,32 @@ class NBTScreenHandlerFactory(
     }
 
     companion object {
-        private fun convertEntryToNumberTag(input: String): AbstractNumberTag {
+        private fun convertEntryToNumberTag(input: String): AbstractNbtNumber {
             try {
                 val value = input.cleanNumber()
 
                 // Decimal, default to double if not specified
                 if (input.contains('.')) {
                     if (input.endsWith('F', true)) {
-                        return FloatTag.of(value.toFloat())
+                        return NbtFloat.of(value.toFloat())
                     }
-                    return DoubleTag.of(value.toDouble())
+                    return NbtDouble.of(value.toDouble())
                 }
 
                 // Fixed number, default to int
                 if (input.endsWith("L", true)) {
-                    return LongTag.of(value.toLong())
+                    return NbtLong.of(value.toLong())
                 }
 
                 if (input.endsWith("B", true)) {
-                    return ByteTag.of(value.toByte())
+                    return NbtByte.of(value.toByte())
                 }
 
                 if (input.endsWith("S", true)) {
-                    return ShortTag.of(value.toShort())
+                    return NbtShort.of(value.toShort())
                 }
 
-                return IntTag.of(value.toInt())
+                return NbtInt.of(value.toInt())
             } catch (err: Throwable) {
                 err.printStackTrace()
                 throw InvalidArgument()

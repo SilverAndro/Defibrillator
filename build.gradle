@@ -1,12 +1,12 @@
 plugins {
-    id 'fabric-loom' version '0.6-SNAPSHOT'
+    id 'fabric-loom' version '0.8-SNAPSHOT'
     id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '1.5.0'
     id 'net.minecrell.licenser' version "0.4.1"
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -40,8 +40,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-language-kotlin:1.6.0+kotlin.1.5.0"
 
     // Aegis
-    modImplementation 'com.github.P03W:Aegis:2.3.0'
-    include 'com.github.P03W:Aegis:2.3.0'
+    modImplementation 'com.github.P03W:Aegis:3.0.0'
+    include 'com.github.P03W:Aegis:3.0.0'
 
     // Microconfig
     modImplementation 'com.github.P03W:Microconfig:2.0.1'
@@ -65,21 +65,12 @@ license {
     header = rootProject.file('LICENSE_FILE_HEADER')
     include '**/*.java'
     include '**/*.kt'
-    style.java = 'BLOCK_COMMENT'
-    style.kt = 'BLOCK_COMMENT'
+    it.style.java = 'BLOCK_COMMENT'
+    it.style.kt = 'BLOCK_COMMENT'
 }
 
 processResources {
     inputs.property "version", project.version
-
-    from(sourceSets.main.resources.srcDirs) {
-        include "fabric.mod.json"
-        expand "version": project.version
-    }
-
-    from(sourceSets.main.resources.srcDirs) {
-        exclude "fabric.mod.json"
-    }
 }
 
 // ensure that the encoding is set to UTF-8, no matter what the system default is
@@ -87,6 +78,8 @@ processResources {
 // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+
+    it.options.release = 16
 }
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
@@ -124,8 +117,10 @@ publishing {
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "16"
+
+        freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
     }
 }
 
-compileKotlin.kotlinOptions.jvmTarget = "1.8"
+compileKotlin.kotlinOptions.jvmTarget = "16"

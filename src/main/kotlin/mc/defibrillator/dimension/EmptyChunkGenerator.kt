@@ -6,21 +6,17 @@
 
 package mc.defibrillator.dimension
 
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
+import net.minecraft.world.*
 import net.minecraft.world.biome.source.BiomeSource
+import net.minecraft.world.chunk.Chunk
+import net.minecraft.world.gen.StructureAccessor
 import net.minecraft.world.gen.chunk.ChunkGenerator
 import net.minecraft.world.gen.chunk.StructuresConfig
-import mc.defibrillator.dimension.EmptyChunkGenerator
-import net.minecraft.world.ChunkRegion
-import net.minecraft.world.WorldAccess
-import net.minecraft.world.gen.StructureAccessor
-import net.minecraft.world.Heightmap
 import net.minecraft.world.gen.chunk.VerticalBlockSample
-import net.minecraft.block.BlockState
-import com.mojang.serialization.codecs.RecordCodecBuilder
-import com.mojang.datafixers.kinds.App
-import com.mojang.serialization.Codec
-import net.minecraft.world.BlockView
-import net.minecraft.world.chunk.Chunk
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 import java.util.function.Function
 
 class EmptyChunkGenerator(biomeSource: BiomeSource?) : ChunkGenerator(biomeSource, StructuresConfig(false)) {
@@ -33,13 +29,20 @@ class EmptyChunkGenerator(biomeSource: BiomeSource?) : ChunkGenerator(biomeSourc
     }
 
     override fun buildSurface(region: ChunkRegion, chunk: Chunk) {}
-    override fun populateNoise(world: WorldAccess, accessor: StructureAccessor, chunk: Chunk) {}
-    override fun getHeight(x: Int, z: Int, heightmapType: Heightmap.Type): Int {
+    override fun populateNoise(
+        executor: Executor?,
+        accessor: StructureAccessor?,
+        chunk: Chunk?
+    ): CompletableFuture<Chunk> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getHeight(x: Int, z: Int, heightmap: Heightmap.Type?, world: HeightLimitView?): Int {
         return 0
     }
 
-    override fun getColumnSample(x: Int, z: Int): BlockView {
-        return VerticalBlockSample(arrayOfNulls(0))
+    override fun getColumnSample(x: Int, z: Int, world: HeightLimitView?): VerticalBlockSample {
+        return VerticalBlockSample(0, arrayOfNulls(0))
     }
 
     companion object {

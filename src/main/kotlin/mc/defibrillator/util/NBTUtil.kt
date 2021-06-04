@@ -7,17 +7,20 @@
 package mc.defibrillator.util
 
 import net.fabricmc.fabric.api.util.NbtType
-import net.minecraft.nbt.AbstractListTag
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.Tag
+import net.minecraft.block.entity.BlockEntity
+import net.minecraft.entity.Entity
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.AbstractNbtList
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtElement
 
 /**
  * Gets the value stored at `key`, or null if not present or tag does not support retrieval
  */
-fun Tag.retrieve(key: String): Tag? {
+fun NbtElement.retrieve(key: String): NbtElement? {
     return when (this) {
-        is CompoundTag -> this.get(key)
-        is AbstractListTag<*> -> this[key.toInt()]
+        is NbtCompound -> this.get(key)
+        is AbstractNbtList<*> -> this[key.toInt()]
         else -> null
     }
 }
@@ -25,10 +28,10 @@ fun Tag.retrieve(key: String): Tag? {
 /**
  * Deletes `key` from the containing tag
  */
-fun Tag.delete(key: String) {
+fun NbtElement.delete(key: String) {
     when (this) {
-        is CompoundTag -> this.remove(key)
-        is AbstractListTag<*> -> this.removeAt(key.toInt())
+        is NbtCompound -> this.remove(key)
+        is AbstractNbtList<*> -> this.removeAt(key.toInt())
     }
 }
 
@@ -37,10 +40,22 @@ fun Tag.delete(key: String) {
  * @see NbtType
  * @return If the listTag would accept a tag of that type
  */
-fun AbstractListTag<*>.wouldAccept(nbtType: Int): Boolean {
-    return if (this.elementType == NbtType.END.toByte()) {
+fun AbstractNbtList<*>.wouldAccept(nbtType: Int): Boolean {
+    return if (heldType == NbtType.END.toByte()) {
         true
     } else {
-        this.elementType == nbtType.toByte()
+        heldType == nbtType.toByte()
     }
+}
+
+fun Entity.toNBT(): NbtCompound {
+    return writeNbt(NbtCompound())
+}
+
+fun BlockEntity.toNBT(): NbtCompound {
+    return writeNbt(NbtCompound())
+}
+
+fun ItemStack.toNBT(): NbtCompound {
+    return writeNbt(NbtCompound())
 }

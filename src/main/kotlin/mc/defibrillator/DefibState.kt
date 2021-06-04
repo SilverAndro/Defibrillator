@@ -8,14 +8,12 @@ package mc.defibrillator
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import mc.defibrillator.gui.data.AdvancementMenuState
 import mc.defibrillator.gui.data.NBTMenuState
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import org.github.p03w.quecee.util.DualHashMap
 import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 object DefibState {
     @JvmField

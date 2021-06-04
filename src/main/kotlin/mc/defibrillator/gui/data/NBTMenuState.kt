@@ -8,9 +8,9 @@ package mc.defibrillator.gui.data
 
 import mc.defibrillator.gui.NBTScreenHandlerFactory
 import mc.defibrillator.util.classes.DynamicLimitedIntProp
-import net.minecraft.nbt.AbstractListTag
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.Tag
+import net.minecraft.nbt.AbstractNbtList
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtElement
 import net.minecraft.server.network.ServerPlayerEntity
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * The state of the gui, should be passed around instead of copied or duplicated
  */
-class NBTMenuState(var rootTag: CompoundTag, val playerUUID: UUID, val player: ServerPlayerEntity) {
+class NBTMenuState(var rootTag: NbtCompound, val playerUUID: UUID, val player: ServerPlayerEntity) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()
     var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })
@@ -27,12 +27,12 @@ class NBTMenuState(var rootTag: CompoundTag, val playerUUID: UUID, val player: S
     var factory: NBTScreenHandlerFactory? = null
     var suppressOnClose: AtomicBoolean = AtomicBoolean(false)
 
-    fun getActiveTag(): Tag {
-        var out: Tag = rootTag
+    fun getActiveTag(): NbtElement {
+        var out: NbtElement = rootTag
         for (key in keyStack) {
-            if (out is CompoundTag) {
+            if (out is NbtCompound) {
                 out = out.get(key)!!
-            } else if (out is AbstractListTag<*>) {
+            } else if (out is AbstractNbtList<*>) {
                 out = out[key.toInt()]!!
             }
         }
@@ -41,8 +41,8 @@ class NBTMenuState(var rootTag: CompoundTag, val playerUUID: UUID, val player: S
 
     fun getAvailableKeys(): List<String> {
         return when (val active = getActiveTag()) {
-            is CompoundTag -> active.keys.toList()
-            is AbstractListTag<*> -> (0 until active.size).map { it.toString() }
+            is NbtCompound -> active.keys.toList()
+            is AbstractNbtList<*> -> (0 until active.size).map { it.toString() }
             else -> emptyList()
         }
     }

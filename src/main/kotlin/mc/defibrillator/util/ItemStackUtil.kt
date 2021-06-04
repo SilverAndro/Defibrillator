@@ -7,10 +7,7 @@
 package mc.defibrillator.util
 
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.IntArrayTag
-import net.minecraft.nbt.ListTag
-import net.minecraft.nbt.StringTag
+import net.minecraft.nbt.*
 
 /**
  * Adds each entry in loreLines as plain text to the tooltip
@@ -18,11 +15,11 @@ import net.minecraft.nbt.StringTag
  * Automatically adds an extra line break at the begining
  */
 fun ItemStack.withLore(loreLines: List<String>): ItemStack {
-    val display = (this.orCreateTag.get("display") as CompoundTag?) ?: CompoundTag()
-    display.put("Lore", ListTag().apply {
-        add(StringTag.of("{\"text\":\"\"}"))
+    val display = (this.orCreateTag.get("display") as NbtCompound?) ?: NbtCompound()
+    display.put("Lore", NbtList().apply {
+        add(NbtString.of("{\"text\":\"\"}"))
         for (line in loreLines) {
-            add(StringTag.of("{\"text\":\"$line\",\"color\":\"white\",\"italic\":false}"))
+            add(NbtString.of("{\"text\":\"$line\",\"color\":\"white\",\"italic\":false}"))
         }
     })
     this.orCreateTag.put("display", display)
@@ -34,8 +31,8 @@ fun ItemStack.withLore(loreLines: List<String>): ItemStack {
  */
 fun ItemStack.withGlint(doGlint: Boolean = true): ItemStack {
     if (doGlint) {
-        this.orCreateTag.put("Enchantments", ListTag().apply {
-            add(CompoundTag())
+        this.orCreateTag.put("Enchantments", NbtList().apply {
+            add(NbtCompound())
         })
     }
     return this
@@ -45,11 +42,11 @@ fun ItemStack.withGlint(doGlint: Boolean = true): ItemStack {
  * Applies the skull data to the ItemStack
  */
 fun ItemStack.applySkull(data: String, uuid: List<Int>): ItemStack {
-    orCreateTag.put("SkullOwner", CompoundTag().apply {
-        put("Id", IntArrayTag(uuid))
-        put("Properties", CompoundTag().apply {
-            put("textures", ListTag().apply {
-                add(CompoundTag().apply {
+    orCreateTag.put("SkullOwner", NbtCompound().apply {
+        put("Id", NbtIntArray(uuid))
+        put("Properties", NbtCompound().apply {
+            put("textures", NbtList().apply {
+                add(NbtCompound().apply {
                     putString("Value", data)
                 })
             })

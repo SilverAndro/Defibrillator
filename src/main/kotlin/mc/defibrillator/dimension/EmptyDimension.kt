@@ -10,10 +10,8 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.serialization.Codec
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions
 import net.minecraft.block.Blocks
-import net.minecraft.command.CommandException
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
@@ -27,12 +25,12 @@ import net.minecraft.world.gen.chunk.ChunkGenerator
 
 object EmptyDimension {
     val DIMENSION_KEY: RegistryKey<DimensionOptions> = RegistryKey.of(
-        Registry.DIMENSION_OPTIONS,
+        Registry.DIMENSION_KEY,
         Identifier("defib", "void")
     )
 
     val WORLD_KEY = RegistryKey.of(
-        Registry.DIMENSION,
+        Registry.WORLD_KEY,
         DIMENSION_KEY.value
     )
 

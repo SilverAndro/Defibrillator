@@ -132,7 +132,7 @@ class AdvancementScreenHandlerFactory(
                     if (advancement.second) Formatting.GREEN else Formatting.RED
                 )
                 .withGlint(advancement.second)
-        ) { i: Int, state: AdvancementMenuState ->
+        ) { _: Int, state: AdvancementMenuState ->
             if (allowEditing) {
                 state.overrides[advancement.first] = advancement.second.not()
                 state.factory.rebuild()

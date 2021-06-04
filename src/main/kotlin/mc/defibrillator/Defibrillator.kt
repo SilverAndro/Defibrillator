@@ -18,13 +18,7 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
-import net.minecraft.block.BlockState
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.entity.player.PlayerAbilities
-import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
 import kotlin.time.ExperimentalTime
 
 class Defibrillator : ModInitializer {

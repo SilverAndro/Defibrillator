@@ -28,10 +28,9 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.github.p03w.quecee.api.util.guiStack
 import org.github.p03w.quecee.util.GuiAction
+import java.util.*
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
-import kotlin.time.toDuration
 
 /**
  * Opens a NBT editing/viewing gui
@@ -100,7 +99,11 @@ fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) 
             DefibState.awaitingInput[state.player] = {
                 DefibState.readInput.computeIfAbsent(state.player) { mutableListOf() }
                 DefibState.readInput[state.player]!!.add(it)
-                state.player.sendMessage(LiteralText("${forMessage.capitalize()} set"), false)
+                state.player.sendMessage(LiteralText("${forMessage.replaceFirstChar { char ->
+                    if (char.isLowerCase()) char.titlecase(
+                        Locale.getDefault()
+                    ) else char.toString()
+                }} set"), false)
                 topRoutine.cancel(SafeCoroutineExit())
             }
 
@@ -120,53 +123,53 @@ fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) 
  * Generates an ItemStack and GuiAction for the tag with the given name
  */
 @ExperimentalTime
-fun Tag.toGuiEntry(name: String): Pair<ItemStack, GuiAction<NBTMenuState>> {
+fun NbtElement.toGuiEntry(name: String): Pair<ItemStack, GuiAction<NBTMenuState>> {
     return when (this) {
-        is ByteArrayTag -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Byte)")) { data, composite ->
+        is NbtByteArray -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Byte)")) { data, composite ->
             modeOrOpen(data, name, composite)
         }
 
-        is ByteTag -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Byte)").asHashtag()) { data, composite ->
+        is NbtByte -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Byte)").asHashtag()) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
-        is CompoundTag -> Pair(Items.SHULKER_BOX.guiStack(name)) { data, composite ->
+        is NbtCompound -> Pair(Items.SHULKER_BOX.guiStack(name)) { data, composite ->
             modeOrOpen(data, name, composite)
         }
 
-        is DoubleTag -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Double)").asHashtag()) { data, composite ->
+        is NbtDouble -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Double)").asHashtag()) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
-        is FloatTag -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Float)").asHashtag()) { data, composite ->
+        is NbtFloat -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Float)").asHashtag()) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
-        is IntArrayTag -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Int)")) { data, composite ->
+        is NbtIntArray -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Int)")) { data, composite ->
             modeOrOpen(data, name, composite)
         }
 
-        is IntTag -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Int)").asHashtag()) { data, composite ->
+        is NbtInt -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Int)").asHashtag()) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
-        is ListTag -> Pair(Items.WRITABLE_BOOK.guiStack(name)) { data, composite ->
+        is NbtList -> Pair(Items.WRITABLE_BOOK.guiStack(name)) { data, composite ->
             modeOrOpen(data, name, composite)
         }
 
-        is LongArrayTag -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Long)")) { data, composite ->
+        is NbtLongArray -> Pair(Items.WRITABLE_BOOK.guiStack("$name (Long)")) { data, composite ->
             modeOrOpen(data, name, composite)
         }
 
-        is LongTag -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Long)").asHashtag()) { data, composite ->
+        is NbtLong -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Long)").asHashtag()) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
-        is ShortTag -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Short)").asHashtag()) { data, composite ->
+        is NbtShort -> Pair(Items.PLAYER_HEAD.guiStack("$name: $this (Short)").asHashtag()) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
-        is StringTag -> Pair(Items.PAPER.guiStack("$name: $this")) { data, composite ->
+        is NbtString -> Pair(Items.PAPER.guiStack("$name: $this")) { data, composite ->
             modeOrDo(data, name, composite) { _, _ -> }
         }
 
