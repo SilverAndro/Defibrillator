@@ -18,6 +18,7 @@ import net.minecraft.util.math.Vec3d
 import net.minecraft.util.registry.Registry
 import net.minecraft.util.registry.RegistryKey
 import net.minecraft.world.TeleportTarget
+import net.minecraft.world.World
 import net.minecraft.world.dimension.DimensionOptions
 import net.minecraft.world.dimension.DimensionType
 import net.minecraft.world.gen.chunk.ChunkGenerator
@@ -29,7 +30,7 @@ object EmptyDimension {
         Identifier("defib", "void")
     )
 
-    val WORLD_KEY = RegistryKey.of(
+    val WORLD_KEY: RegistryKey<World> = RegistryKey.of(
         Registry.WORLD_KEY,
         DIMENSION_KEY.value
     )

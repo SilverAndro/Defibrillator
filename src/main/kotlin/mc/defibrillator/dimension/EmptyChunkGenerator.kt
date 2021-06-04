@@ -30,11 +30,11 @@ class EmptyChunkGenerator(biomeSource: BiomeSource?) : ChunkGenerator(biomeSourc
 
     override fun buildSurface(region: ChunkRegion, chunk: Chunk) {}
     override fun populateNoise(
-        executor: Executor?,
-        accessor: StructureAccessor?,
-        chunk: Chunk?
+        executor: Executor,
+        accessor: StructureAccessor,
+        chunk: Chunk
     ): CompletableFuture<Chunk> {
-        TODO("Not yet implemented")
+        return CompletableFuture.completedFuture(chunk)
     }
 
     override fun getHeight(x: Int, z: Int, heightmap: Heightmap.Type?, world: HeightLimitView?): Int {

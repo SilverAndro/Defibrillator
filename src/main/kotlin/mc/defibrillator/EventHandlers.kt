@@ -73,12 +73,6 @@ object EventHandlers {
         val emptyWorld: ServerWorld? = server.getWorld(EmptyDimension.WORLD_KEY)
 
         world.players.forEach {
-            it.inventory.remove(
-                { stack -> stack.tag?.contains("defib-DELETE") ?: false },
-                Int.MAX_VALUE,
-                it.playerScreenHandler.craftingInput
-            )
-
             // Stop limiting world modification if they are no longer in edit world
             if (Defibrillator.canModifyWorldAbility.grants(it, VanillaAbilities.LIMIT_WORLD_MODIFICATIONS)) {
                 if (world != emptyWorld) {
