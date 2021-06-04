@@ -23,7 +23,7 @@ import mc.defibrillator.util.toNBT
 import me.basiqueevangelist.nevseti.OfflineAdvancementUtils
 import me.basiqueevangelist.nevseti.OfflineDataCache
 import me.basiqueevangelist.nevseti.OfflineNameCache
-import me.basiqueevangelist.nevseti.nbt.CompoundTagView
+import me.basiqueevangelist.nevseti.nbt.NbtCompoundView
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions
 import net.minecraft.block.BlockState
 import net.minecraft.block.entity.BlockEntity
@@ -127,7 +127,7 @@ object EventHandlers {
     }
 
     @ExperimentalTime
-    fun onOfflineDataChanged(uuid: UUID, data: CompoundTagView) {
+    fun onOfflineDataChanged(uuid: UUID, data: NbtCompoundView) {
         try {
             val state = DefibState.activeNBTSessions.getB(uuid)
             state.rootTag = data.copy()
