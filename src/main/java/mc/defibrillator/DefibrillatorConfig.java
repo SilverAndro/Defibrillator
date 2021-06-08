@@ -21,6 +21,8 @@ public class DefibrillatorConfig implements ConfigData {
     
     public CommandConfigs commands = new CommandConfigs();
     
+    public CrashConfig errorManagement = new CrashConfig();
+    
     public static class CommandConfigs implements ConfigData {
         @Comment("Permission level required to access /defib")
         public int minimumRequiredLevel = 2;
@@ -33,5 +35,13 @@ public class DefibrillatorConfig implements ConfigData {
         
         @Comment("If the debug subset of commands is enabled")
         public boolean enableDebugCommands = true;
+    }
+    
+    public static class CrashConfig implements ConfigData {
+        @Comment("If entities that cause a crash should be prevented from ticking")
+        public boolean autoPauseCrashingEntities = false;
+        
+        @Comment("How long until frozen objects are unfrozen automatically in attempted ticks, -1 to disable auto retry")
+        public int retryDelay = 200;
     }
 }

@@ -635,6 +635,28 @@ object EventHandlers {
                     }
                 }
             }
+            literal("freeze") {
+                literal("entity") {
+                    entity("entity") {
+                        executes {
+                            val entity = it.getEntity("entity")
+                            DefibState.suppressedEntities[entity] = Defibrillator.config.errorManagement.retryDelay
+                            it.source.sendFeedback(LiteralText("Frozen entity ").append(entity.name), true)
+                        }
+                    }
+                }
+            }
+            literal("unfreeze") {
+                literal("entity") {
+                    entity("entity") {
+                        executes {
+                            val entity = it.getEntity("entity")
+                            DefibState.suppressedEntities.remove(entity)
+                            it.source.sendFeedback(LiteralText("Unfrozen entity ").append(entity.name), true)
+                        }
+                    }
+                }
+            }
         }
     }
 }

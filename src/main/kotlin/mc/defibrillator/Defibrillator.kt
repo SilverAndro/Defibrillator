@@ -19,6 +19,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.minecraft.server.command.ServerCommandSource
+import java.util.logging.Logger
 import kotlin.time.ExperimentalTime
 
 class Defibrillator : ModInitializer {
@@ -50,6 +51,9 @@ class Defibrillator : ModInitializer {
     }
 
     companion object {
+        @JvmField
+        val LOGGER: Logger = Logger.getLogger("Defibrillator")
+
         @JvmStatic
         val config: DefibrillatorConfig = MicroConfig.getOrCreate("defib", DefibrillatorConfig())
 

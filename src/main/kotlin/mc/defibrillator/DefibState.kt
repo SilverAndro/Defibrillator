@@ -10,10 +10,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import mc.defibrillator.gui.data.AdvancementMenuState
 import mc.defibrillator.gui.data.NBTMenuState
+import net.minecraft.entity.Entity
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import org.github.p03w.quecee.util.DualHashMap
 import java.util.*
+import kotlin.collections.HashMap
 
 object DefibState {
     @JvmField
@@ -30,6 +32,9 @@ object DefibState {
 
     // TODO: Replace Boolean with a chunk reference
     val activeChunkSessions: DualHashMap<UUID, Boolean, MutableList<UUID>> = DualHashMap()
+
+    @JvmField
+    val suppressedEntities: HashMap<Entity, Int> = hashMapOf()
 
     internal lateinit var serverInstance: MinecraftServer
 }
