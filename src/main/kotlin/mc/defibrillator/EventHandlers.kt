@@ -50,10 +50,6 @@ import kotlin.time.ExperimentalTime
 
 @Suppress("UNUSED_PARAMETER")
 object EventHandlers {
-    fun onServerStarted(server: MinecraftServer) {
-        DefibState.serverInstance = server
-    }
-
     fun onServerClosed(server: MinecraftServer) {
         // Any jobs we dispatched
         DefibState.coroutineScope.cancel(CancellationException("Server closing"))

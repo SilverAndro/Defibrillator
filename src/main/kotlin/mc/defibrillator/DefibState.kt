@@ -35,6 +35,4 @@ object DefibState {
 
     @JvmField
     val suppressedEntities: HashMap<Entity, Int> = hashMapOf()
-
-    internal lateinit var serverInstance: MinecraftServer
 }
