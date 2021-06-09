@@ -41,9 +41,6 @@ public class EntityTickSuppressor {
     
         try {
             tickConsumer.accept(entity);
-            if (Random.Default.nextDouble() > 0.99999) {
-                throw new AbstractMethodError();
-            }
         } catch (Throwable err) {
             CrashReport crashReport = CrashReport.create(err, "Ticking entity");
             CrashReportSection crashReportSection = crashReport.addElement("Entity being ticked");
