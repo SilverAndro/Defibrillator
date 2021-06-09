@@ -31,7 +31,7 @@ public class EntityTickSuppressor {
             if (Defibrillator.getConfig().errorManagement.retryDelay != -1) {
                 int amount = DefibState.suppressedEntities.get(entity);
                 DefibState.suppressedEntities.put(entity, --amount);
-                if (amount <= 0) {
+                if (amount == 0) {
                     DefibState.suppressedEntities.remove(entity);
                 }
             }

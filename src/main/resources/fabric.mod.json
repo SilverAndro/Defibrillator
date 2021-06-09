@@ -3,7 +3,7 @@
   "id": "defibrillator",
   "version": "${version}",
   "name": "Defibrillator",
-  "description": "A server utility focused mod for messing with NBT data from in-game",
+  "description": "A server utility focused mod for messing with NBT data from in-game, as well as other world management",
   "authors": [
     "TheoreticallyUseful / P03W"
   ],

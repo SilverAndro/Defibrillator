@@ -643,6 +643,13 @@ object EventHandlers {
                             DefibState.suppressedEntities[entity] = Defibrillator.config.errorManagement.retryDelay
                             it.source.sendFeedback(LiteralText("Frozen entity ").append(entity.name), true)
                         }
+                        literal("forever") {
+                            executes {
+                                val entity = it.getEntity("entity")
+                                DefibState.suppressedEntities[entity] = -1
+                                it.source.sendFeedback(LiteralText("Frozen entity ").append(entity.name).append(" forever"), true)
+                            }
+                        }
                     }
                 }
             }
