@@ -6,7 +6,6 @@
 
 package mc.defibrillator.mixin;
 
-import kotlin.random.Random;
 import mc.defibrillator.DefibState;
 import mc.defibrillator.Defibrillator;
 import net.minecraft.entity.Entity;

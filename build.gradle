@@ -76,7 +76,7 @@ license {
 processResources {
     inputs.property "version", project.version
 
-    filesMatching("fabric.mod.json") {
+    filesMatching("src/main/resources/fabric.mod.json") {
         expand "version": project.version
     }
 }
