@@ -59,9 +59,8 @@ object EventHandlers {
         DefibState.activeChunkSessions.clear()
         DefibState.activeNBTSessions.clear()
 
-        // No more awaiting or reading input
+        // No more awaiting input
         DefibState.awaitingInput.clear()
-        DefibState.readInput.clear()
     }
 
     fun onWorldEndTick(world: ServerWorld) {
@@ -79,6 +78,7 @@ object EventHandlers {
             }
         }
 
+        // Remove unapproved players from the edit world
         if (world == emptyWorld) {
             val toRespawn = world.players.filterNot {
                 DefibState.activeChunkSessions.any { uuid, _, mutableList ->
@@ -106,6 +106,7 @@ object EventHandlers {
         }
     }
 
+    // Prevent block breaking if not permitted
     fun onBeforeBreakBlock(
         world: World,
         playerEntity: PlayerEntity,
@@ -119,6 +120,7 @@ object EventHandlers {
     @ExperimentalTime
     fun onOfflineDataChanged(uuid: UUID, data: NbtCompoundView) {
         try {
+            // Rebuild the session if available
             val state = DefibState.activeNBTSessions.getB(uuid)
             state.rootTag = data.copy()
             if (!state.isInAddMenu) {
@@ -643,7 +645,9 @@ object EventHandlers {
                             executes {
                                 val entity = it.getEntity("entity")
                                 DefibState.suppressedEntities[entity] = -1
-                                it.source.sendFeedback(LiteralText("Frozen entity ").append(entity.name).append(" forever"), true)
+                                it.source.sendFeedback(
+                                    LiteralText("Frozen entity ").append(entity.name).append(" forever"), true
+                                )
                             }
                         }
                     }

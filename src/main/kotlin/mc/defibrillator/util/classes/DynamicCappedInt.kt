@@ -10,8 +10,10 @@ import kotlin.reflect.KProperty
 
 /**
  * An Int property that recalculates the limits of what it can be set to every time the value is attempted to be set
+ * @param min the minimum value allowed
+ * @param maxMaker A lambda that returns the max value for each set
  */
-class DynamicLimitedIntProp(private val minMaker: () -> Int, private val maxMaker: () -> Int) {
+class DynamicCappedInt(private val min: Int, private inline val maxMaker: () -> Int) {
     private var backing = 0
 
     operator fun getValue(thisRef: Any, property: KProperty<*>): Int {
@@ -20,7 +22,6 @@ class DynamicLimitedIntProp(private val minMaker: () -> Int, private val maxMake
 
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: Any?) {
         if (value is Int) {
-            val min = minMaker()
             val max = maxMaker()
 
             if (value in min..max) {

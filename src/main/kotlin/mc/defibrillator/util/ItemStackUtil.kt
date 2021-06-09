@@ -7,12 +7,16 @@
 package mc.defibrillator.util
 
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.*
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtIntArray
+import net.minecraft.nbt.NbtList
+import net.minecraft.nbt.NbtString
 
 /**
  * Adds each entry in loreLines as plain text to the tooltip
  *
- * Automatically adds an extra line break at the begining
+ * Automatically adds an extra line break at the beginning
+ * @param loreLines the lines of lore to be added
  */
 fun ItemStack.withLore(loreLines: List<String>): ItemStack {
     val display = (this.orCreateTag.get("display") as NbtCompound?) ?: NbtCompound()
@@ -28,6 +32,7 @@ fun ItemStack.withLore(loreLines: List<String>): ItemStack {
 
 /**
  * Puts an empty Enchantments tag on the itemstack (replacing all enchantments)
+ * @param doGlint if the glint should be applied
  */
 fun ItemStack.withGlint(doGlint: Boolean = true): ItemStack {
     if (doGlint) {
@@ -56,7 +61,7 @@ fun ItemStack.applySkull(data: String, uuid: List<Int>): ItemStack {
 }
 
 /**
- * applySkull but hardcoded to the hashtag
+ * [applySkull] but hardcoded to the hashtag
  */
 fun ItemStack.asHashtag(): ItemStack {
     this.applySkull(

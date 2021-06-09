@@ -26,9 +26,6 @@ class Defibrillator : ModInitializer {
     @ExperimentalTime
     @ExperimentalStdlibApi
     override fun onInitialize() {
-        // Grab the server on start
-        ServerLifecycleEvents.SERVER_STARTED.register(EventHandlers::onServerStarted)
-
         // Clean up awaits and state on close
         ServerLifecycleEvents.SERVER_STOPPING.register(EventHandlers::onServerClosed)
 

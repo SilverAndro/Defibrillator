@@ -53,7 +53,7 @@ class NBTScreenHandlerFactory(
         state: NBTMenuState
     ): ItemActionMap<NBTMenuState> {
         val actionMap = ItemActionMap<NBTMenuState> {
-            // Last page if not on first page
+            // Previous page if not on first page
             if (state.page > 0) {
                 addEntry(
                     0,
@@ -219,35 +219,35 @@ class NBTScreenHandlerFactory(
             if (canAdd(NbtType.COMPOUND))
                 addEntry(index++, Items.SHULKER_BOX.guiStack("Compound Tag")) { _, composite ->
                     getTextEntry(state, "compound name") {
-                        punchInAndExit(NbtCompound(), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtCompound(), it, composite)
                     }
                 }
 
             if (canAdd(NbtType.LIST))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("List Tag")) { _, composite ->
                     getTextEntry(composite, "list name") {
-                        punchInAndExit(NbtList(), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtList(), it, composite)
                     }
                 }
 
             if (canAdd(NbtType.INT_ARRAY))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("Int Array Tag")) { _, composite ->
                     getTextEntry(composite, "int array name") {
-                        punchInAndExit(NbtIntArray(listOf()), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtIntArray(listOf()), it, composite)
                     }
                 }
 
             if (canAdd(NbtType.BYTE_ARRAY))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("Byte Array Tag")) { _, composite ->
                     getTextEntry(composite, "byte array name") {
-                        punchInAndExit(NbtByteArray(listOf()), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtByteArray(listOf()), it, composite)
                     }
                 }
 
             if (canAdd(NbtType.LONG_ARRAY))
                 addEntry(index++, Items.WRITABLE_BOOK.guiStack("Long Array Tag")) { _, composite ->
                     getTextEntry(composite, "long array name") {
-                        punchInAndExit(NbtLongArray(listOf()), it ?: "PLACEHOLDER", composite)
+                        punchInAndExit(NbtLongArray(listOf()), it, composite)
                     }
                 }
 
@@ -315,6 +315,11 @@ class NBTScreenHandlerFactory(
     }
 
 
+    /**
+     * Gets 2 text entries from the player
+     *
+     * TODO: This is very hardcoded
+     */
     @ExperimentalTime
     private fun getDoubleTextEntry(
         state: NBTMenuState,
@@ -324,7 +329,7 @@ class NBTScreenHandlerFactory(
         getTextEntry(state, "tag name/index") { value1 ->
             getTextEntry(state, value2For) { value2 ->
                 try {
-                    onSuccess(value1 ?: "PLACEHOLDER", value2 ?: "0")
+                    onSuccess(value1, value2)
                 } catch (err: Throwable) {
                     player.sendMessage(
                         LiteralText("Failed to parse and/or handle!").formatted(Formatting.RED),
@@ -370,6 +375,9 @@ class NBTScreenHandlerFactory(
         }
     }
 
+    /**
+     * Makes a different map depending on state
+     */
     @OptIn(ExperimentalTime::class)
     override fun generateActionMap(state: NBTMenuState): ItemActionMap<NBTMenuState> {
         return if (state.isInAddMenu) {

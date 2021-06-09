@@ -7,7 +7,7 @@
 package mc.defibrillator.gui.data
 
 import mc.defibrillator.gui.AdvancementScreenHandlerFactory
-import mc.defibrillator.util.classes.DynamicLimitedIntProp
+import mc.defibrillator.util.classes.DynamicCappedInt
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Identifier
 import java.util.*
@@ -18,7 +18,7 @@ class AdvancementMenuState(val targetUUID: UUID, val player: ServerPlayerEntity)
     var suppressOnClose: AtomicBoolean = AtomicBoolean(false)
 
     var size = 0
-    var page by DynamicLimitedIntProp({ 0 }, { size / PER_PAGE })
+    var page by DynamicCappedInt(0) { size / PER_PAGE }
 
     var overrides: HashMap<Identifier, Boolean> = hashMapOf()
 

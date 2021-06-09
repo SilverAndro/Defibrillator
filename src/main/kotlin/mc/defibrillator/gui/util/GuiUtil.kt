@@ -6,10 +6,12 @@
 
 package mc.defibrillator.gui.util
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import mc.defibrillator.DefibState
 import mc.defibrillator.Defibrillator
-import mc.defibrillator.exception.SafeCoroutineExit
 import mc.defibrillator.gui.AdvancementScreenHandlerFactory
 import mc.defibrillator.gui.NBTScreenHandlerFactory
 import mc.defibrillator.gui.data.AdvancementMenuState
@@ -79,7 +81,7 @@ fun openAdvancementGui(
  * Prompts the player for a text entry in chat with a 30s timeout
  */
 @ExperimentalTime
-fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) -> Unit) {
+fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String) -> Unit) {
     state.suppressOnClose.set(true)
 
     DefibState.coroutineScope.launch(Defibrillator.crashHandler) {
@@ -97,23 +99,25 @@ fun getTextEntry(state: NBTMenuState, forMessage: String, onComplete: (String?) 
             }
 
             DefibState.awaitingInput[state.player] = {
-                DefibState.readInput.computeIfAbsent(state.player) { mutableListOf() }
-                DefibState.readInput[state.player]!!.add(it)
-                state.player.sendMessage(LiteralText("${forMessage.replaceFirstChar { char ->
-                    if (char.isLowerCase()) char.titlecase(
-                        Locale.getDefault()
-                    ) else char.toString()
-                }} set"), false)
-                topRoutine.cancel(SafeCoroutineExit())
+                onComplete(it)
+                state.player.sendMessage(
+                    LiteralText(
+                        "${
+                            forMessage.replaceFirstChar { char ->
+                                if (char.isLowerCase()) char.titlecase(
+                                    Locale.getDefault()
+                                ) else char.toString()
+                            }
+                        } set"
+                    ), false
+                )
+                topRoutine.cancel()
             }
 
             while (isActive) {
                 delay(Duration.milliseconds(10))
             }
         } catch (err: Throwable) {
-            if (err is SafeCoroutineExit) {
-                onComplete(DefibState.readInput[state.player]?.removeFirstOrNull())
-            }
             state.suppressOnClose.set(false)
         }
     }

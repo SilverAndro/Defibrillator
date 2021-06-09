@@ -7,7 +7,7 @@
 package mc.defibrillator.gui.data
 
 import mc.defibrillator.gui.NBTScreenHandlerFactory
-import mc.defibrillator.util.classes.DynamicLimitedIntProp
+import mc.defibrillator.util.classes.DynamicCappedInt
 import net.minecraft.nbt.AbstractNbtList
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class NBTMenuState(var rootTag: NbtCompound, val playerUUID: UUID, val player: ServerPlayerEntity) {
     var clickMode: RightClickMode = RightClickMode.PASS
     var keyStack = mutableListOf<String>()
-    var page by DynamicLimitedIntProp({ 0 }, { getAvailableKeys().size / PER_PAGE })
+    var page by DynamicCappedInt(0) { getAvailableKeys().size / PER_PAGE }
     var isInAddMenu = false
 
     var factory: NBTScreenHandlerFactory? = null
